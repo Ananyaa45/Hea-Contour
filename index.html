@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HEA Contour Clean</title>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/recharts/umd/Recharts.min.js"></script>
+    <script>
+
+    </script>
+
+    <style>
+        html,
+        body,
+        #root {
+            width: 100%;
+            min-height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Inter, Arial, sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 96%;
+            max-width: 1700px;
+            margin: 24px auto;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            color: #0f172a;
+        }
+
+        h3 {
+            color: #2563eb;
+        }
+
+        button {
+            padding: 12px 18px;
+            margin-top: 12px;
+            margin-right: 10px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 15px;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+            transition: all 0.25s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.28);
+        }
+
+        button:active {
+            transform: translateY(0px);
+        }
+
+        .alloy-btn {
+            margin: 5px;
+            padding: 6px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #e2e8f0;
+            color: black;
+        }
+
+        .active {
+            background-color: #22c55e;
+            color: white;
+            font-weight: bold;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 18px 0;
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, #7c3aed, #2563eb);
+        }
+
+        .success-btn {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+        }
+
+        .section-title {
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 34px;
+            margin-bottom: 18px;
+        }
+
+        select,
+        input[type="range"] {
+            width: 100%;
+            margin-top: 8px;
+            margin-bottom: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .06);
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #eff6ff;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        button {
+            min-height: 46px;
+            font-size: 15px;
+        }
+
+        /* ===== PHASE 2 PREMIUM UI ===== */
+
+        body {
+            background:
+                radial-gradient(circle at top right, rgba(59, 130, 246, .08), transparent 25%),
+                radial-gradient(circle at top left, rgba(124, 58, 237, .08), transparent 25%),
+                #f8fafc;
+        }
+
+        /* Title */
+        h2 {
+            font-size: 38px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 18px;
+            color: #0f172a;
+        }
+
+        .card {
+            scroll-margin-top: 20px;
+            background: rgba(255, 255, 255, .92);
+            padding: 18px;
+            border-radius: 18px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, .08);
+            transition: all .25s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 18px 36px rgba(15, 23, 42, .10),
+                0 4px 12px rgba(15, 23, 42, .06);
+        }
+
+        /* Buttons */
+        button {
+            border: none;
+            border-radius: 14px;
+            padding: 12px 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .25s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px) scale(1.01);
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, #7c3aed, #2563eb);
+            box-shadow: 0 12px 24px rgba(99, 102, 241, .22);
+        }
+
+        .success-btn {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            box-shadow: 0 12px 24px rgba(34, 197, 94, .22);
+        }
+
+        /* Dropdowns */
+        select {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid #dbeafe;
+            background: white;
+            margin-bottom: 10px;
+        }
+
+        /* Sliders */
+        input[type="range"] {
+            accent-color: #2563eb;
+        }
+
+        /* Tables */
+        table {
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        th {
+            font-size: 14px;
+            font-weight: 800;
+            color: #1e3a8a;
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        /* Highlight selected row */
+        tr[style*="dcfce7"] {
+            box-shadow: inset 4px 0 0 #22c55e;
+        }
+
+        /* Grid spacing */
+        .grid {
+            gap: 18px;
+        }
+
+        /* Best alloy special border */
+        .card[style*="lime"] {
+            border: 2px solid #22c55e !important;
+            box-shadow: 0 18px 34px rgba(34, 197, 94, .14);
+        }
+
+        /* ===== PHASE 3 RESEARCH DASHBOARD ===== */
+
+        /* Sticky top controls */
+        .toolbar {
+            position: sticky;
+            top: 10px;
+            z-index: 50;
+            background: rgba(255, 255, 255, .88);
+            backdrop-filter: blur(10px);
+            padding: 14px;
+            border-radius: 16px;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, .08);
+            margin-bottom: 20px;
+        }
+
+        /* KPI tiles */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin: 16px 0;
+        }
+
+        .kpi {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, .06);
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .kpi-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        /* Score badge */
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .badge-good {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-mid {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-low {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Phase tags */
+        .phase-good {
+            color: #16a34a;
+            font-weight: 800;
+        }
+
+        .phase-mid {
+            color: #ca8a04;
+            font-weight: 800;
+        }
+
+        .phase-bad {
+            color: #dc2626;
+            font-weight: 800;
+        }
+
+        /* Nice section title */
+        .section-title {
+            font-size: 20px;
+            font-weight: 800;
+            margin: 18px 0 12px;
+            color: #0f172a;
+        }
+
+        /* ===== PHASE 4 ELITE UI ===== */
+
+        .loading-pill {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+            font-weight: 700;
+            animation: pulse 1.1s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: .65;
+                transform: scale(.98);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: .65;
+                transform: scale(.98);
+            }
+        }
+
+        .hero-best {
+            border: 2px solid #22c55e;
+            background: linear-gradient(135deg, #f0fdf4, #ffffff);
+            box-shadow: 0 18px 34px rgba(34, 197, 94, .14);
+        }
+
+        .rank-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .action-bar {
+            position: sticky;
+            top: 12px;
+            z-index: 40;
+            background: rgba(255, 255, 255, .92);
+            backdrop-filter: blur(10px);
+            padding: 12px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, .06);
+        }
+
+        tbody tr {
+            transition: all .18s ease;
+        }
+
+        tbody tr:hover {
+            transform: scale(1.01);
+        }
+
+        /* ===== PHASE 5 FINAL POLISH ===== */
+
+        body {
+            font-size: 16px;
+            line-height: 1.45;
+        }
+
+        /* Better headings */
+        h2 {
+            font-size: 42px;
+            font-weight: 800;
+        }
+
+        h3 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        h4 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, .08);
+        }
+
+        /* Better buttons */
+        button {
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            border-radius: 14px;
+            padding: 12px 18px;
+            cursor: pointer;
+            transition: all .22s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px) scale(1.02);
+            filter: brightness(1.05);
+        }
+
+        /* KPI values larger */
+        .kpi-value {
+            font-size: 28px;
+        }
+
+        /* Compact cards grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        /* Better tables */
+        table {
+            font-size: 14px;
+        }
+
+        th {
+            font-size: 13px;
+            letter-spacing: .3px;
+        }
+
+        /* Colored score styles */
+        .score-high {
+            color: #16a34a;
+            font-weight: 800;
+        }
+
+        .score-mid {
+            color: #ca8a04;
+            font-weight: 800;
+        }
+
+        .score-low {
+            color: #dc2626;
+            font-weight: 800;
+        }
+
+        /* Nice scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Section spacing */
+        section,
+        .card {
+            margin-bottom: 14px;
+        }
+
+        .grid-two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media(max-width:900px) {
+            .grid-two {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+    {% raw %}
+    <script type="text/babel">
+        const RechartsLib = window.Recharts || {};
+
+        const BarChart = RechartsLib.BarChart;
+        const Bar = RechartsLib.Bar;
+        const XAxis = RechartsLib.XAxis;
+        const YAxis = RechartsLib.YAxis;
+        const CartesianGrid = RechartsLib.CartesianGrid;
+        const Tooltip = RechartsLib.Tooltip;
+        const ResponsiveContainer = RechartsLib.ResponsiveContainer;
+
+        const PieChart = RechartsLib.PieChart;
+        const Pie = RechartsLib.Pie;
+        const Cell = RechartsLib.Cell;
+
+        const ScatterChart = RechartsLib.ScatterChart;
+        const Scatter = RechartsLib.Scatter;
+
+        const { useState, useEffect } = React;
+        const SYSTEMS = {
+            "Al-Ni-Fe-Cr": ["Al", "Ni", "Fe", "Cr"],
+            "Al-Li-Mg-Sc-Ti": ["Al", "Li", "Mg", "Sc", "Ti"],
+            "Mo-Nb-Ta-W": ["Mo", "Nb", "Ta", "W"]   // ✅ ADD THIS
+        };
+        // ✅ ADD THIS EXACTLY HERE (above EL)
+        function normalize(comp) {
+            const total = Object.values(comp).reduce((a, b) => a + b, 0);
+            if (total === 0) return comp;
+
+            let out = {};
+            for (let k in comp) {
+                out[k] = (comp[k] / total) * 100;
+            }
+            return out;
+        }
+        // ELEMENT DATA
+        const EL = {
+            Al: { r: 143, VEC: 3, chi: 1.61, Tm: 933, rho: 2.7 },
+            Ni: { r: 125, VEC: 10, chi: 1.91, Tm: 1728, rho: 8.9 },
+            Fe: { r: 126, VEC: 8, chi: 1.83, Tm: 1811, rho: 7.87 },
+            Cr: { r: 128, VEC: 6, chi: 1.66, Tm: 2180, rho: 7.19 },
+            Co: { r: 125, VEC: 9, chi: 1.88, Tm: 1768, rho: 8.9 },
+            Mn: { r: 127, VEC: 7, chi: 1.55, Tm: 1519, rho: 7.21 },
+
+            Li: { r: 152, VEC: 1, chi: 0.98, Tm: 453, rho: 0.53 },
+            Mg: { r: 160, VEC: 2, chi: 1.31, Tm: 923, rho: 1.74 },
+            Sc: { r: 164, VEC: 3, chi: 1.36, Tm: 1814, rho: 2.99 },
+            Ti: { r: 147, VEC: 4, chi: 1.54, Tm: 1941, rho: 4.51 },
+
+            Mo: { r: 139, VEC: 6, chi: 2.16, Tm: 2896, rho: 10.28 },
+            Nb: { r: 146, VEC: 5, chi: 1.6, Tm: 2750, rho: 8.57 },
+            Ta: { r: 146, VEC: 5, chi: 1.5, Tm: 3290, rho: 16.69 },
+            W: { r: 139, VEC: 6, chi: 2.36, Tm: 3695, rho: 19.25 }
+        };
+
+        function App() {
+
+            const DATA = {
+                "Lightweight HEA": {
+                    "Al-Li-Mg-Sc-Ti": [
+                        { name: "Alloy 1", comp: { Al: 20, Li: 20, Mg: 20, Sc: 20, Ti: 20 } }
+                    ]
+                },
+
+                "Refractory HEA": {
+                    "Mo-Nb-Ta-W": [
+                        { name: "Alloy 1", comp: { Mo: 25, Nb: 25, Ta: 25, W: 25 } }
+                    ]
+                },
+
+                "Transitional HEA": {
+
+                    "Co-Cr-Fe-Mn-Ni": [
+                        { name: "Cantor Alloy", comp: { Co: 20, Cr: 20, Fe: 20, Mn: 20, Ni: 20 } }
+                    ],
+
+                    "Al-Co-Cr-Fe-Ni": [
+                        { name: "AlCoCrFeNi", comp: { Al: 20, Co: 20, Cr: 20, Fe: 20, Ni: 20 } }
+                    ]
+
+                }
+            };
+            function getPhaseColor(phase) {
+                if (!phase) return "white";
+                if (phase.toLowerCase().includes("stable")) return "lime";
+                if (phase.includes("Mixed")) return "orange";
+                return "red";
+
+            }
+
+            const [selectedType, setSelectedType] = useState("Transitional HEA");
+            const [selectedFamily, setSelectedFamily] = useState("Co-Cr-Fe-Mn-Ni");
+            const [selectedAlloy, setSelectedAlloy] = useState(0);
+            const [autoNormalize, setAutoNormalize] = React.useState(true);
+
+
+            const [comp, setComp] = useState({
+                Co: 20, Cr: 20, Fe: 20, Mn: 20, Ni: 20
+            });
+
+            const [data, setData] = useState(null);
+            const [selectedRandom, setSelectedRandom] = useState(null);
+            const [randomAlloys, setRandomAlloys] = useState([]);
+            const [bestAlloys, setBestAlloys] = useState([]);
+            const [filter, setFilter] = useState("all");
+            const [loading, setLoading] = useState(false);
+
+            const chartData = Array.isArray(bestAlloys)
+                ? bestAlloys.slice(0, 6).map((a, i) => ({
+                    name: `#${i + 1}`,
+                    score: Number(a?.finalScore ?? a?.score ?? 0),
+                    density: Number(a?.density ?? a?.density_calc ?? 0),
+                    ys: Number(a?.YS ?? a?.ys ?? 0)
+                }))
+                : [];
+
+
+
+            const liveExplanation = data?.physics
+                ? generateLiveExplanation(data.physics)
+                : "No data yet.";
+
+
+            useEffect(() => {
+                const total = Object.values(comp).reduce((a, b) => a + b, 0);
+
+                if (total === 0) return;   // ✅ SAFE PLACE
+
+                const timeout = setTimeout(() => {
+
+                    const normalizedComp = autoNormalize ? normalize(comp) : comp;
+
+                    fetch("/api/calculate", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ composition: normalizedComp })
+                    })
+                        .then(res => res.json())
+                        .then(res => {
+                            setData(res);
+                        });
+
+                }, 300);
+
+                return () => clearTimeout(timeout);
+
+            }, [comp, autoNormalize]);
+
+
+            function generateLiveExplanation(phys) {
+                if (!phys || Object.keys(phys).length === 0) return "No data yet.";
+
+                const out = [];
+
+                // VEC
+                if (phys.VEC < 6)
+                    out.push("Low VEC → BCC/HCP tendency (strong but less ductile)");
+                else if (phys.VEC < 8)
+                    out.push("Moderate VEC → BCC structure likely");
+                else
+                    out.push("High VEC → FCC structure (ductile)");
+
+                // delta
+                if (phys.delta < 4)
+                    out.push("Low atomic mismatch → very stable solid solution");
+                else if (phys.delta < 6.5)
+                    out.push("Moderate mismatch → solid solution possible");
+                else
+                    out.push("High mismatch → intermetallic risk");
+
+                // dChi
+                if (phys.dChi < 0.1)
+                    out.push("Low electronegativity difference → stable mixing");
+                else if (phys.dChi < 0.25)
+                    out.push("Moderate chemical difference");
+                else
+                    out.push("High chemical difference → phase separation risk");
+                // omega
+                const omegaVal = Number(phys.omega) || 0;
+
+                if (omegaVal > 1.5)
+                    out.push("High Ω → strong solid solution stability");
+                else if (omegaVal > 1)
+                    out.push("Ω > 1 → stable region");
+                else
+                    out.push("Low Ω → instability");
+                // density
+                if (phys.density_calc < 5)
+                    out.push("Lightweight alloy");
+                else if (phys.density_calc > 8)
+                    out.push("High density (heavy alloy)");
+
+                out.push(`Phase predicted: ${phys.phase}`);
+                return out.join(". ") + ".";
+            }
+
+
+
+            function generateOneRandom() {
+
+                let elements;
+
+                if (selectedType === "Lightweight HEA") {
+                    elements = ["Al", "Li", "Mg", "Sc", "Ti"];
+                }
+                else if (selectedType === "Refractory HEA") {
+                    elements = ["Mo", "Nb", "Ta", "W"];   // ✅ removed V
+                }
+                else {
+                    elements = ["Co", "Cr", "Fe", "Mn", "Ni"];  // ✅ use valid ones
+                }
+
+                const selected = elements.sort(() => 0.5 - Math.random()).slice(0, 4);
+
+                let comp = {};
+                let remaining = 100;
+
+                selected.forEach((el, i) => {
+                    if (i === selected.length - 1) {
+                        comp[el] = remaining;
+                    } else {
+                        let val = Math.floor(Math.random() * (remaining - 10));
+                        val = Math.max(10, val);
+                        comp[el] = val;
+                        remaining -= val;
+                    }
+                });
+
+                return comp;
+            }
+
+            const generateRandomAlloys = async () => {
+                const elements =
+                    selectedType === "Lightweight HEA"
+                        ? ["Al", "Li", "Mg", "Sc", "Ti"]
+                        : selectedType === "Refractory HEA"
+                            ? ["Mo", "Nb", "Ta", "W"]
+                            : ["Co", "Cr", "Fe", "Mn", "Ni"];
+
+                const res = await fetch("/api/random_alloys", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        elements,
+                        family: selectedType === "Lightweight HEA" ? "Lightweight" :
+                            selectedType === "Refractory HEA" ? "Refractory" :
+                                "Cantor"
+                    })
+                });
+
+                const data = await res.json();
+                setRandomAlloys(data.alloys || []);
+                setSelectedRandom(null);
+            };
+
+            return (
+                <div className="container">
+
+                    <h2>HEA Contour – Intelligent Alloy Discovery</h2>
+                    <button onClick={() => setAutoNormalize(!autoNormalize)}>
+                        {autoNormalize ? "Auto Normalize: ON" : "Auto Normalize: OFF"}
+                    </button>
+                    {/* TYPE */}
+                    <select
+                        value={selectedType}
+                        onChange={(e) => {
+                            const t = e.target.value;
+                            setSelectedType(t);
+                            const family = Object.keys(DATA[t])[0];
+                            setSelectedFamily(family);
+
+                            const alloy = DATA[t][family][0];
+                            setSelectedAlloy(0);
+                            setComp(alloy.comp);
+                        }}
+                    >
+                        {Object.keys(DATA).map((t) => (
+                            <option key={t} value={t}>
+                                {t}
+                            </option>
+                        ))}
+                    </select>
+                    {/* FAMILY */}
+                    <select
+                        value={selectedFamily}
+                        onChange={(e) => {
+                            const fam = e.target.value;
+                            setSelectedFamily(fam);
+
+                            setSelectedRandom(null);
+
+                            const alloy = DATA[selectedType][fam][0];
+                            setSelectedAlloy(0);
+                            setComp(alloy.comp);
+                        }}
+                    >
+                        {DATA[selectedType] && Object.keys(DATA[selectedType]).map(f => (
+                            <option key={f}>{f}</option>
+                        ))}
+                    </select>
+                    {/* ALLOY */}
+                    <select
+                        value={selectedAlloy}
+                        onChange={(e) => {
+                            const idx = Number(e.target.value);
+                            setSelectedAlloy(idx);
+
+                            setSelectedRandom(null);
+
+                            const alloy = DATA[selectedType][selectedFamily][idx];
+                            setComp(alloy.comp);
+                        }}
+                    >
+                        {(DATA[selectedType]?.[selectedFamily] || []).map((a, i) => (
+                            <option key={i} value={i}>{a.name}</option>
+                        ))}
+                    </select>
+
+                    <p><b>Composition:</b></p>
+                    <ul>
+                        {Object.entries(comp).map(([k, v]) => (
+                            <li key={k}>{k}: {v}%</li>
+                        ))}
+                    </ul>
+
+                    {/* INPUTS */}
+                    <p>
+                        Total: {Object.values(comp).reduce((a, b) => a + b, 0).toFixed(2)}%
+                        {Math.abs(Object.values(comp).reduce((a, b) => a + b, 0) - 100) > 0.01 && (
+                            <span style={{ color: "red" }}> ⚠ Not 100%</span>
+                        )}
+                    </p>  {/* LIVE COMPOSITION SLIDERS */}
+                    <div>
+                        {Object.keys(comp).map(el => (
+                            <div key={el} style={{ marginBottom: "10px" }}>
+                                <label>
+                                    {el}: {comp[el]}%
+                                </label>
+
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    value={comp[el]}
+                                    onChange={(e) => {
+                                        const val = Number(e.target.value);
+                                        setSelectedRandom(null);
+
+
+                                        setComp(prev => {
+                                            let updated = { ...prev, [el]: val };
+
+                                            if (autoNormalize) {
+                                                const total = Object.values(updated).reduce((a, b) => a + b, 0);
+
+                                                if (total === 0) return updated;
+
+                                                Object.keys(updated).forEach(k => {
+                                                    updated[k] = Number(((updated[k] / total) * 100).toFixed(2));
+                                                });
+                                            }
+
+                                            return updated;
+                                        });
+                                    }}
+                                    style={{ width: "100%" }}
+                                />
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* CURRENT */}
+                    {data?.physics && (
+                        <div className="card">
+
+                            <p>VEC: {data.physics?.VEC ?? "-"}</p>
+                            <p>Density: {data.physics?.density_calc ?? "-"} g/cm³</p>
+                            <p>Tm: {data.physics?.Tm_avg ?? "-"} K</p>
+                            <p>δ: {data.physics?.delta ?? "-"}</p>
+                            <p>Δχ: {data.physics?.dChi ?? "-"}</p>
+                            <p>Ω: {data.physics?.omega ?? "-"}</p>
+
+                            <p><b>YS:</b> {data?.ml?.YS_pred != null ? data.ml.YS_pred.toFixed(2) : "-"}</p>
+                            <p><b>HV:</b> {data?.ml?.HV_pred != null ? data.ml.HV_pred.toFixed(2) : "-"}</p>
+
+                            <p><b>Structure:</b> {data.physics?.structure ?? "-"}</p>
+                            <p>Phase: {data.physics?.phase ?? "-"}</p>
+
+                            <p><b>Phase Fractions:</b></p>
+                            <p>FCC: {data.physics?.phase_fractions?.FCC ?? "-"}</p>
+                            <p>BCC: {data.physics?.phase_fractions?.BCC ?? "-"}</p>
+                            <p>HCP: {data.physics?.phase_fractions?.HCP ?? "-"}</p>
+
+                            <hr style={{ margin: "10px 0" }} />
+
+                            <p style={{ fontSize: "14px", color: "#374151" }}>
+                                <b>Live Interpretation:</b><br />
+                                {generateLiveExplanation(data?.physics || {})}
+                            </p>
+                            <p style={{ fontSize: "14px", color: "#1e40af" }}>
+                                <b>Physics-Based Explanation:</b><br />
+                                {data.physics?.explanation || "-"}
+                            </p>
+
+                        </div>
+                    )}
+                    <hr style={{ margin: "10px 0" }} />
+
+                    <p style={{ fontSize: "14px", color: "#374151" }}>
+                        <b>Explanation:</b><br />
+
+                        • <b>VEC (Valence Electron Concentration):</b> Determines crystal structure stability.
+                        Higher VEC → FCC tendency, lower VEC → BCC.<br />
+
+                        • <b>Density:</b> Estimated using rule of mixtures. Lower values → lightweight alloys.<br />
+
+                        • <b>Tm (Melting Temperature):</b> Average melting point. Higher Tm → better high-temperature performance.<br />
+
+                        • <b>δ (Atomic Size Mismatch):</b> Measures lattice distortion. Lower δ favors solid solution formation.<br />
+
+                        • <b>Δχ (Electronegativity Difference):</b> Indicates chemical stability. Lower values → stable mixing.<br />
+
+                        • <b>Ω (Omega Parameter):</b> Combines entropy & enthalpy effects. Ω  &gt; 1 favors solid solution formation.<br />
+
+                        • <b>YS / HV:</b> Predicted using trained ML models (mechanical strength & hardness).<br />
+
+                        • <b>Structure:</b> Estimated using VEC-based rules (FCC/BCC/HCP).<br />
+
+                        • <b>Phase:</b> Indicates whether alloy forms stable solid solution or mixed/intermetallic phases.
+
+                    </p>
+
+                    {/* RANDOM */}
+                    <div className="action-bar">
+
+                        <button
+                            className="primary-btn"
+                            onClick={generateRandomAlloys}
+                        >
+                            🎲 Generate Random Alloys
+                        </button>
+
+                        <button
+                            className="success-btn"
+                            onClick={() => {
+                                setLoading(true);
+
+                                fetch("/optimize", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        composition: selectedRandom?.comp || comp,
+                                        family:
+                                            selectedType === "Lightweight HEA" ? "lightweight" :
+                                                selectedType === "Refractory HEA" ? "refractory" :
+                                                    "transitional"
+                                    })
+                                })
+                                    .then(res => res.json())
+                                    .then(data => {
+
+                                        if (data.error) {
+                                            alert(data.error);
+
+                                            return;
+                                        }
+
+                                        const flat = Object.values(data).flat();
+
+                                        const unique = flat.filter((item, index, self) =>
+                                            index === self.findIndex(t =>
+                                                Math.abs(t.YS - item.YS) < 5 &&
+                                                Math.abs(t.HV - item.HV) < 5
+                                            )
+                                        );
+
+                                        unique.sort((a, b) =>
+                                            (b.finalScore ?? b.score ?? 0) -
+                                            (a.finalScore ?? a.score ?? 0)
+                                        );
+
+                                        setBestAlloys(unique.slice(0, 8));
+
+                                        setTimeout(() => {
+                                            document.querySelector(".analytics-section")?.scrollIntoView({
+                                                behavior: "smooth"
+                                            });
+                                        }, 300);
+
+                                        setLoading(false);
+                                    })
+                                    .catch(() => {
+                                        setLoading(false);
+                                    });
+
+                            }}
+                        >
+                            {loading ? <span className="loading-pill">⏳ Searching...</span> : "🔥 Find Best Alloys"}
+                        </button>
+
+                    </div>
+                    {/* RANDOM RESULTS */}
+                    {randomAlloys.length > 0 && (
+                        <div>
+
+                            <h3>🎲 Random Alloys</h3>
+
+                            <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "10px" }}>
+                                <thead>
+                                    <tr style={{ background: "#f1f5f9" }}>
+                                        <th>#</th>
+                                        <th>Composition</th>
+                                        <th>VEC</th>
+                                        <th>Density</th>
+                                        <th>YS</th>
+                                        <th>HV</th>
+                                        <th>Structure</th>
+                                        <th>Phase</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {randomAlloys.map((a, i) => (
+                                        <tr
+                                            key={i}
+                                            style={{
+                                                cursor: "pointer",
+                                                background: JSON.stringify(selectedRandom?.comp) === JSON.stringify(a.comp) ? "#dcfce7" : "white"
+                                            }}
+                                            onClick={async () => {
+                                                setSelectedRandom(a);
+                                                setComp(a.comp);
+
+                                                const res = await fetch("/api/calculate", {
+                                                    method: "POST",
+                                                    headers: { "Content-Type": "application/json" },
+                                                    body: JSON.stringify({ composition: a.comp })
+                                                });
+
+                                                const result = await res.json();
+                                                setData(result);
+                                            }}
+                                        >
+                                            <td>{i + 1}</td>
+
+                                            <td>
+                                                {Object.entries(a.comp)
+                                                    .map(([k, v]) => `${k}${v.toFixed(0)}`)
+                                                    .join(" ")}
+                                            </td>
+
+                                            <td>{a.physics?.VEC?.toFixed(2) ?? "-"}</td>
+                                            <td>{a.physics?.density_calc?.toFixed(2) ?? "-"}</td>
+
+                                            <td>{a.ml?.YS_pred?.toFixed(0) ?? "-"}</td>   {/* ✅ ADD */}
+                                            <td>{a.ml?.HV_pred?.toFixed(0) ?? "-"}</td>   {/* ✅ ADD */}
+
+                                            <td>{a.physics?.structure ?? "-"}</td>
+                                            <td style={{ color: getPhaseColor(a.physics?.phase) }}>
+                                                {a.physics?.phase ?? "-"}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                            {selectedRandom && (() => {
+                                const phys = selectedRandom?.physics || {};
+                                const compo = selectedRandom?.comp || selectedRandom?.composition || {};
+
+                                return (
+                                    <div className="card" style={{ border: "1px solid cyan" }}>
+                                        <h4>Selected Random Alloy</h4>
+
+                                        {Object.entries(compo).map(([k, v]) => (
+                                            <p key={k}>{k}: {v.toFixed(2)}%</p>
+                                        ))}
+
+                                        <div className="kpi-grid">
+
+                                            <div className="kpi">
+                                                <div className="kpi-label">VEC</div>
+                                                <div className="kpi-value">{phys?.VEC ?? "-"}</div>
+                                            </div>
+
+                                            <div className="kpi">
+                                                <div className="kpi-label">Density</div>
+                                                <div className="kpi-value">
+                                                    {(phys?.density_calc ?? phys?.rho ?? "-")}
+                                                </div>
+                                            </div>
+
+                                            <div className="kpi">
+                                                <div className="kpi-label">Structure</div>
+                                                <div className="kpi-value">{phys?.structure ?? "-"}</div>
+                                            </div>
+
+                                            <div className="kpi">
+                                                <div className="kpi-label">Score</div>
+                                                <div className={
+                                                    "kpi-value " +
+                                                    (
+                                                        selectedRandom?.score >= 75 ? "score-high" :
+                                                            selectedRandom?.score >= 45 ? "score-mid" :
+                                                                "score-low"
+                                                    )
+                                                }>
+                                                    {selectedRandom?.score?.toFixed?.(1) ?? "N/A"}
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <p className={
+                                            phys?.phase?.includes("Stable") ? "phase-good" :
+                                                phys?.phase?.includes("Meta") ? "phase-mid" :
+                                                    "phase-bad"
+                                        }>
+                                            Phase: {phys?.phase ?? "-"}
+                                        </p>
+                                    </div>
+                                );
+                            })()}
+
+                        </div>
+                    )}
+                    {bestAlloys.length > 0 && (
+                        <div className="card analytics-section">
+
+                            <h2>📊 Alloy Analytics</h2>
+
+                            <h3>Top Scores</h3>
+
+                            {chartData.map((item, i) => (
+
+                                <div key={i} style={{ marginBottom: "12px" }}>
+
+                                    <div>{item.name} — {item.score.toFixed(1)}</div>
+
+                                    <div style={{
+                                        background: "#e5e7eb",
+                                        height: "22px",
+                                        borderRadius: "8px",
+                                        overflow: "hidden"
+                                    }}>
+
+                                        <div style={{
+                                            width: `${Math.min(item.score, 100)}%`,
+                                            height: "100%",
+                                            background: "#2563eb"
+                                        }}></div>
+
+                                    </div>
+                                </div>
+                            ))}
+
+                            <h3 style={{ marginTop: "24px" }}>Yield Strength</h3>
+
+                            {chartData.map((item, i) => (
+
+                                <div key={i} style={{ marginBottom: "12px" }}>
+
+                                    <div>{item.name} — {item.ys.toFixed(0)} MPa</div>
+
+                                    <div style={{
+                                        background: "#e5e7eb",
+                                        height: "22px",
+                                        borderRadius: "8px",
+                                        overflow: "hidden"
+                                    }}>
+
+                                        <div style={{
+                                            width: `${Math.min(item.ys / 15, 100)}%`,
+                                            height: "100%",
+                                            background: "#16a34a"
+                                        }}></div>
+
+                                    </div>
+                                </div>
+                            ))}
+
+                        </div>
+                    )}
+                    {/* RESULTS */}
+                    {Array.isArray(bestAlloys) && bestAlloys.length > 0 && (
+                        <div>
+
+                            <h3>🏆 Best Alloy</h3>
+                            <div className="card hero-best">
+                                <p><b>YS:</b> {Number(bestAlloys[0].YS ?? bestAlloys[0].ys ?? 0).toFixed(2)} MPa</p>
+                                <p><b>HV:</b> {Number(bestAlloys[0].HV ?? bestAlloys[0].hv ?? 0).toFixed(2)} MPa</p>
+                                <p><b>Density:</b> {Number(bestAlloys[0].density || bestAlloys[0].density_calc).toFixed(2)} g/cm³</p>
+                                <p><b>Physics Check:</b> Based on input composition</p>
+                                <p><b>Structure:</b> {bestAlloys[0].structure || (Number(bestAlloys[0].VEC) < 6.87 ? "BCC" : "FCC")}</p>
+
+                                <p><b>Composition:</b></p>
+                                <ul>
+                                    {Object.entries(
+                                        bestAlloys[0].comp ||
+                                        bestAlloys[0].composition ||
+                                        {}
+                                    ).map(([el, val]) => (
+                                        <li key={el}>{el}: {Number(val).toFixed(1)}%</li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            <h3>Other Top Alloys</h3>
+
+                            <div className="grid">
+                                {bestAlloys
+                                    .filter(a => {
+                                        if (filter === "strong") return a.YS > 900;
+                                        if (filter === "light") return (a.density || a.density_calc) < 8;
+                                        return true;
+                                    })
+                                    .slice(1)
+                                    .map((a, i) => (
+                                        <div key={i} className="card">
+                                            <span className="rank-badge">Rank #{i + 2}</span>
+                                            <p><b>YS:</b> {Number(a.YS ?? a.ys ?? 0).toFixed(2)} MPa</p>
+                                            <p><b>HV:</b> {Number(a.HV ?? a.hv ?? 0).toFixed(2)} MPa</p>
+                                            <p><b>Density:</b> {Number(a.density || a.density_calc).toFixed(2)} g/cm³</p>
+                                            <p><b>Structure:</b> {a.structure || (Number(a.VEC) < 6.87 ? "BCC" : "FCC")}</p>
+
+                                            <p><b>Composition:</b></p>
+                                            <ul>
+                                                {Object.entries(
+                                                    a.comp ||
+                                                    a.composition ||
+                                                    {}
+                                                ).map(([el, val]) => (
+                                                    <li key={el}>{el}: {Number(val).toFixed(1)}%</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ))}
+                            </div>
+
+                        </div>
+                    )}
+
+                </div>
+            );
+        }
+
+        const root = document.getElementById("root");
+
+        if (root) {
+            ReactDOM.createRoot(root).render(<App />);
+        }
+
+    </script>
+    {% endraw %}
+</body>
+
+</html>
