@@ -30,22 +30,129 @@ const PRESETS = {
   }
 };
 
+const parseCompositionFormula = (text, currentElements, currentComp) => {
+  const regex = /([A-Z][a-z]?)\s*[:=]?\s*([0-9]+(?:\.[0-9]+)?)/g;
+  let match;
+  const parsed = {};
+  
+  while ((match = regex.exec(text)) !== null) {
+    const el = match[1];
+    const val = parseFloat(match[2]);
+    parsed[el] = val;
+  }
+  
+  const parsedKeys = Object.keys(parsed);
+  if (parsedKeys.length === 0) {
+    return { valid: false, error: "Enter elements and composition values, e.g. Co30 Cr30" };
+  }
+  
+  for (const el of parsedKeys) {
+    if (!currentElements.includes(el)) {
+      return { valid: false, error: `'${el}' is not in the active alloy family.` };
+    }
+    if (parsed[el] < 0 || parsed[el] > 100) {
+      return { valid: false, error: `Composition for '${el}' must be between 0% and 100%.` };
+    }
+  }
+  
+  const parsedSum = parsedKeys.reduce((sum, el) => sum + parsed[el], 0);
+  if (parsedSum > 100) {
+    return { valid: false, error: `Total composition (${parsedSum.toFixed(1)}%) cannot exceed 100%.` };
+  }
+  
+  const unspecifiedKeys = currentElements.filter(k => !parsedKeys.includes(k));
+  
+  if (unspecifiedKeys.length === 0) {
+    if (Math.abs(parsedSum - 100) > 0.05) {
+      return { valid: false, error: `Total composition must sum to exactly 100% (currently ${parsedSum.toFixed(1)}%).` };
+    }
+    return { valid: true, composition: parsed };
+  }
+  
+  const remainder = 100 - parsedSum;
+  const unspecifiedSum = unspecifiedKeys.reduce((sum, k) => sum + (currentComp[k] ?? 0), 0);
+  
+  const newComp = { ...currentComp };
+  parsedKeys.forEach(k => {
+    newComp[k] = parsed[k];
+  });
+  
+  if (unspecifiedSum > 0) {
+    unspecifiedKeys.forEach(k => {
+      newComp[k] = Number(((currentComp[k] / unspecifiedSum) * remainder).toFixed(1));
+    });
+  } else {
+    unspecifiedKeys.forEach(k => {
+      newComp[k] = Number((remainder / unspecifiedKeys.length).toFixed(1));
+    });
+  }
+  
+  const currentSum = Object.values(newComp).reduce((a, b) => a + b, 0);
+  const diff = 100 - currentSum;
+  if (Math.abs(diff) > 0.01 && unspecifiedKeys.length > 0) {
+    const lastKey = unspecifiedKeys[unspecifiedKeys.length - 1];
+    newComp[lastKey] = Number((newComp[lastKey] + diff).toFixed(1));
+  }
+  
+  return { valid: true, composition: newComp };
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('home'); // 'home', 'explore', 'optimize', 'analyze'
   const [selectedType, setSelectedType] = useState("Transitional HEA");
   const [selectedFamily, setSelectedFamily] = useState("Al-Co-Cr-Fe-Ni");
   const [selectedAlloy, setSelectedAlloy] = useState(0);
-  const [autoNormalize, setAutoNormalize] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [computing, setComputing] = useState(false);
-  const [showSuccessRing, setShowSuccessRing] = useState(false);
+  const [formulaInput, setFormulaInput] = useState('');
+  const [formulaError, setFormulaError] = useState(null);
+  const [isFormulaFocused, setIsFormulaFocused] = useState(false);
+  const [lockedElements, setLockedElements] = useState({});
 
   // Initialize composition based on selected preset
   const [comp, setComp] = useState({
     Al: 20, Co: 20, Cr: 20, Fe: 20, Ni: 20
   });
 
-  const { data, setData } = useRealTimeCalculation(comp, autoNormalize);
+  const { data, setData } = useRealTimeCalculation(comp);
+
+  // Sync formula input text with composition changes (unless user is actively typing)
+  useEffect(() => {
+    if (!isFormulaFocused) {
+      const formatted = Object.entries(comp)
+        .filter(([_, val]) => val > 0)
+        .map(([el, val]) => `${el}${val.toFixed(1)}`)
+        .join(' ');
+      setFormulaInput(formatted);
+      setFormulaError(null);
+    }
+  }, [comp, isFormulaFocused]);
+
+  const handleFormulaChange = (text) => {
+    setFormulaInput(text);
+    
+    if (text.trim() === '') {
+      setFormulaError(null);
+      setLockedElements({});
+      return;
+    }
+    
+    const parseResult = parseCompositionFormula(text, currentElements, comp);
+    if (parseResult.valid) {
+      setComp(parseResult.composition);
+      setFormulaError(null);
+      
+      // Auto-lock elements that were explicitly specified in the typed formula
+      const regex = /([A-Z][a-z]?)\s*[:=]?\s*([0-9]+(?:\.[0-9]+)?)/g;
+      let match;
+      const parsedLocks = {};
+      while ((match = regex.exec(text)) !== null) {
+        parsedLocks[match[1]] = true;
+      }
+      setLockedElements(parsedLocks);
+    } else {
+      setFormulaError(parseResult.error);
+    }
+  };
 
   // Get current elements in active family
   const currentElements = Object.keys(
@@ -58,6 +165,7 @@ export default function App() {
     setSelectedAlloy(alloyIdx);
     const alloy = PRESETS[type][family][alloyIdx];
     setComp({ ...alloy.comp });
+    setLockedElements({});
   };
 
   const handleRandomize = () => {
@@ -81,15 +189,7 @@ export default function App() {
     });
 
     setComp(randomized);
-  };
-
-  const handleCalculate = () => {
-    setComputing(true);
-    setTimeout(() => {
-      setComputing(false);
-      setShowSuccessRing(true);
-      setTimeout(() => setShowSuccessRing(false), 1200);
-    }, 1000);
+    setLockedElements({});
   };
 
   // Compute total composition percentage
@@ -274,7 +374,28 @@ export default function App() {
               <div className="glass-panel relative overflow-hidden" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div className="scan-line"></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 className="font-display" style={{ fontSize: '15px', fontWeight: 'bold' }}>Composition</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h3 className="font-display" style={{ fontSize: '15px', fontWeight: 'bold' }}>Composition</h3>
+                    {Object.values(lockedElements).some(v => v) && (
+                      <button
+                        onClick={() => setLockedElements({})}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--primary-container)',
+                          fontSize: '11px',
+                          textDecoration: 'underline',
+                          cursor: 'pointer',
+                          padding: 0,
+                          margin: 0,
+                          minHeight: 'auto',
+                          fontWeight: '500'
+                        }}
+                      >
+                        Unlock All
+                      </button>
+                    )}
+                  </div>
                   <span className="font-mono" style={{ 
                     fontSize: '11px', 
                     padding: '2px 8px', 
@@ -320,12 +441,44 @@ export default function App() {
                   </select>
                 </div>
 
+                {/* Manual Formula Input */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
+                  <label className="font-display" style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: '600' }}>
+                    Manual Formula Input
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Co30 Cr30"
+                    value={formulaInput}
+                    onChange={(e) => handleFormulaChange(e.target.value)}
+                    onFocus={() => setIsFormulaFocused(true)}
+                    onBlur={() => setIsFormulaFocused(false)}
+                    style={{
+                      padding: '10px 14px',
+                      borderRadius: 'var(--border-radius-sm)',
+                      background: 'var(--surface-container-lowest)',
+                      border: formulaError ? '1px solid var(--error)' : '1px solid var(--outline-variant)',
+                      color: 'var(--on-surface)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '13px',
+                      outline: 'none',
+                      transition: 'border-color 0.2s ease'
+                    }}
+                  />
+                  {formulaError && (
+                    <span className="font-mono" style={{ fontSize: '11px', color: 'var(--error)', marginTop: '2px' }}>
+                      ⚠️ {formulaError}
+                    </span>
+                  )}
+                </div>
+
                 {/* Sliders components list */}
                 <div style={{ marginTop: '8px' }}>
                   <CompositionSliders 
                     comp={comp} 
                     setComp={setComp} 
-                    autoNormalize={autoNormalize} 
+                    lockedElements={lockedElements}
+                    setLockedElements={setLockedElements}
                     setSelectedRandom={() => {}} 
                   />
                 </div>
@@ -333,35 +486,12 @@ export default function App() {
                 {/* Compute / random actions */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--outline-variant)' }}>
                   <button 
-                    className="btn-primary" 
-                    onClick={handleCalculate}
-                    disabled={computing}
-                  >
-                    <span className={`material-symbols-outlined ${computing ? 'animate-spin' : ''}`} style={{ fontSize: '20px' }}>
-                      {computing ? 'sync' : 'bolt'}
-                    </span>
-                    {computing ? 'Computing...' : 'Calculate Properties'}
-                  </button>
-
-                  <button 
                     className="btn-secondary" 
                     onClick={handleRandomize}
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>shuffle</span>
                     Randomize Alloy
                   </button>
-                  
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--on-surface-variant)' }}>Auto-normalize sliders</span>
-                    <label className="toggle-switch">
-                      <input 
-                        type="checkbox" 
-                        checked={autoNormalize} 
-                        onChange={(e) => setAutoNormalize(e.target.checked)} 
-                      />
-                      <span className="toggle-slider"></span>
-                    </label>
-                  </div>
                 </div>
               </div>
 
@@ -384,7 +514,7 @@ export default function App() {
             <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Bento Metric indicators cards */}
               <div className="bento-grid">
-                <div className={`glass-panel ${showSuccessRing ? 'pulse-glow' : ''}`} style={{ borderLeft: '4px solid var(--primary-container)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100px' }}>
+                <div className="glass-panel" style={{ borderLeft: '4px solid var(--primary-container)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100px' }}>
                   <span className="font-mono" style={{ fontSize: '10px', color: 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>fitness_center</span>
                     YIELD STRENGTH
