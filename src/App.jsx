@@ -36,11 +36,7 @@ export default function App() {
   const [selectedType, setSelectedType] = useState("Transitional HEA");
   const [selectedFamily, setSelectedFamily] = useState("Al-Co-Cr-Fe-Ni");
   const [selectedAlloy, setSelectedAlloy] = useState(0);
-  const [autoNormalize, setAutoNormalize] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
-  const [computing, setComputing] = useState(false);
-  const [showSuccessRing, setShowSuccessRing] = useState(false);
   
   // FastAPI validation states
   const [mlValidating, setMlValidating] = useState(false);
@@ -52,7 +48,7 @@ export default function App() {
     Al: 20, Co: 20, Cr: 20, Fe: 20, Ni: 20
   });
 
-  const { data, setData } = useRealTimeCalculation(comp, autoNormalize);
+  const { data, setData } = useRealTimeCalculation(comp);
 
   // Clear ML validation when composition changes
   useEffect(() => {
@@ -95,14 +91,7 @@ export default function App() {
     setComp(randomized);
   };
 
-  const handleCalculate = () => {
-    setComputing(true);
-    setTimeout(() => {
-      setComputing(false);
-      setShowSuccessRing(true);
-      setTimeout(() => setShowSuccessRing(false), 1200);
-    }, 1000);
-  };
+
 
   const handleMLValidate = async () => {
     setMlValidating(true);
@@ -321,24 +310,13 @@ export default function App() {
                   <CompositionSliders 
                     comp={comp} 
                     setComp={setComp} 
-                    autoNormalize={autoNormalize} 
+                    autoNormalize={true} 
                     setSelectedRandom={() => {}} 
                   />
                 </div>
 
                 {/* Compute / random actions */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--outline-variant)' }}>
-                  <button 
-                    className="btn-primary" 
-                    onClick={handleCalculate}
-                    disabled={computing}
-                  >
-                    <span className={`material-symbols-outlined ${computing ? 'animate-spin' : ''}`} style={{ fontSize: '20px' }}>
-                      {computing ? 'sync' : 'bolt'}
-                    </span>
-                    {computing ? 'Computing...' : 'Calculate Properties'}
-                  </button>
-
                   <button 
                     className="btn-success" 
                     onClick={handleMLValidate}
@@ -355,18 +333,6 @@ export default function App() {
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>shuffle</span>
                     Randomize Alloy
                   </button>
-                  
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--on-surface-variant)' }}>Auto-normalize sliders</span>
-                    <label className="toggle-switch">
-                      <input 
-                        type="checkbox" 
-                        checked={autoNormalize} 
-                        onChange={(e) => setAutoNormalize(e.target.checked)} 
-                      />
-                      <span className="toggle-slider"></span>
-                    </label>
-                  </div>
                 </div>
               </div>
 
@@ -389,7 +355,7 @@ export default function App() {
             <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Bento Metric indicators cards */}
               <div className="bento-grid">
-                <div className={`glass-panel ${showSuccessRing ? 'pulse-glow' : ''}`} style={{ borderLeft: '4px solid var(--primary-container)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100px' }}>
+                <div className="glass-panel" style={{ borderLeft: '4px solid var(--primary-container)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100px' }}>
                   <span className="font-mono" style={{ fontSize: '10px', color: 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>fitness_center</span>
                     YIELD STRENGTH
