@@ -1,12 +1,10 @@
 import os
 import re
-import pandas as pd
-import numpy as np
+import csv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Dict
-from sklearn.neighbors import KNeighborsRegressor
+from typing import Dict, List, Optional
 
 app = FastAPI(title="HEA Contour ML Backend")
 
@@ -71,50 +69,65 @@ def parse_formula(formula: str) -> Dict[str, float]:
 all_elements = set()
 feature_cols = []
 dataset = []
-ys_model = None
-hv_model = None
+X_ys = []
+y_ys = []
+X_hv = []
+y_hv = []
 
 def train_models():
-    global all_elements, feature_cols, dataset, ys_model, hv_model
+    global all_elements, feature_cols, dataset, X_ys, y_ys, X_hv, y_hv
     
     if not os.path.exists(CSV_PATH):
         print(f"Error: Database CSV not found at {CSV_PATH}")
         return False
         
-    df = pd.read_csv(CSV_PATH)
-    
-    # 1. Parse all compositions and collect unique elements
     temp_dataset = []
     unique_elements = set()
     
-    for idx, row in df.iterrows():
-        composition_str = str(row['composition'])
-        if not composition_str or composition_str == "nan":
-            continue
-            
-        comp_dict = parse_formula(composition_str)
-        unique_elements.update(comp_dict.keys())
-        
-        ys = row['yield_strength_MPa']
-        hv = row['HV']
-        
-        temp_dataset.append({
-            'composition': comp_dict,
-            'ys': float(ys) if pd.notna(ys) else None,
-            'hv': float(hv) if pd.notna(hv) else None,
-            'ref': str(row['ref']) if pd.notna(row['ref']) else '',
-            'original_name': composition_str
-        })
+    try:
+        with open(CSV_PATH, mode='r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                composition_str = row.get('composition')
+                if not composition_str or composition_str.strip() == "" or composition_str == "nan":
+                    continue
+                    
+                comp_dict = parse_formula(composition_str)
+                unique_elements.update(comp_dict.keys())
+                
+                # Safe float parsing helper
+                def safe_float(val_str):
+                    if not val_str or val_str.strip() == "" or val_str.lower() == "nan":
+                        return None
+                    try:
+                        return float(val_str)
+                    except ValueError:
+                        return None
+                
+                ys = safe_float(row.get('yield_strength_MPa'))
+                hv = safe_float(row.get('HV'))
+                ref = row.get('ref', '')
+                if ref is None or ref.lower() == "nan":
+                    ref = ''
+                    
+                temp_dataset.append({
+                    'composition': comp_dict,
+                    'ys': ys,
+                    'hv': hv,
+                    'ref': ref,
+                    'original_name': composition_str
+                })
+    except Exception as e:
+        print(f"Error reading CSV: {e}")
+        return False
         
     all_elements = unique_elements
     feature_cols = sorted(list(all_elements))
     dataset = temp_dataset
     
-    # 2. Vectorize compositions into features
     def get_features(comp):
         return [comp.get(el, 0.0) for el in feature_cols]
         
-    # 3. Train Yield Strength KNN model
     X_ys = []
     y_ys = []
     for item in dataset:
@@ -122,13 +135,6 @@ def train_models():
             X_ys.append(get_features(item['composition']))
             y_ys.append(item['ys'])
             
-    if X_ys:
-        # Use distance weighting: closer neighbors have higher influence
-        ys_model = KNeighborsRegressor(n_neighbors=min(5, len(X_ys)), weights='distance')
-        ys_model.fit(X_ys, y_ys)
-        print(f"Trained YS Model on {len(X_ys)} samples.")
-        
-    # 4. Train Hardness (HV) KNN model
     X_hv = []
     y_hv = []
     for item in dataset:
@@ -136,12 +142,42 @@ def train_models():
             X_hv.append(get_features(item['composition']))
             y_hv.append(item['hv'])
             
-    if X_hv:
-        hv_model = KNeighborsRegressor(n_neighbors=min(5, len(X_hv)), weights='distance')
-        hv_model.fit(X_hv, y_hv)
-        print(f"Trained HV Model on {len(X_hv)} samples.")
-        
+    print(f"Trained custom models. YS samples: {len(X_ys)}, HV samples: {len(X_hv)}")
     return True
+
+def knn_predict(X_train: List[List[float]], y_train: List[float], target: List[float], k: int) -> float:
+    """
+    Pure Python K-Nearest Neighbors regressor with distance-weighted interpolation (1 / distance).
+    Matches KNeighborsRegressor(weights='distance') functionality.
+    """
+    if not X_train:
+        raise ValueError("Training set is empty.")
+        
+    distances = []
+    for i, x_i in enumerate(X_train):
+        dist = sum((a - b) ** 2 for a, b in zip(target, x_i)) ** 0.5
+        distances.append((dist, y_train[i]))
+        
+    # Sort by distance
+    distances.sort(key=lambda x: x[0])
+    
+    # Get top K
+    neighbors = distances[:k]
+    
+    # Exact match handling
+    if neighbors[0][0] == 0.0:
+        return neighbors[0][1]
+        
+    total_weight = 0.0
+    weighted_sum = 0.0
+    for dist, val in neighbors:
+        if dist == 0.0:
+            return val
+        weight = 1.0 / dist
+        weighted_sum += val * weight
+        total_weight += weight
+        
+    return weighted_sum / total_weight
 
 # Run training on startup
 train_models()
@@ -150,18 +186,17 @@ class PredictionRequest(BaseModel):
     composition: Dict[str, float]
 
 @app.post("/api/predict")
+@app.post("/predict")
 def predict_properties(req: PredictionRequest):
-    global ys_model, hv_model, dataset, feature_cols
+    global X_ys, y_ys, X_hv, y_hv, dataset, feature_cols
     
-    if not ys_model or not hv_model:
-        # Attempt to train if not already trained
+    if not X_ys or not X_hv:
         success = train_models()
         if not success:
-            raise HTTPException(status_code=500, detail="Prediction models are not loaded.")
+            raise HTTPException(status_code=500, detail="Prediction models could not be loaded.")
 
     target_comp = req.composition
     
-    # Normalize input composition to sum to 100%
     total = sum(target_comp.values())
     if total == 0:
         raise HTTPException(status_code=400, detail="Composition values cannot sum to 0.")
@@ -172,8 +207,8 @@ def predict_properties(req: PredictionRequest):
     features = [normalized_comp.get(el, 0.0) for el in feature_cols]
     
     # Execute predictions
-    ys_pred = float(ys_model.predict([features])[0])
-    hv_pred = float(hv_model.predict([features])[0])
+    ys_pred = knn_predict(X_ys, y_ys, features, k=min(5, len(X_ys)))
+    hv_pred = knn_predict(X_hv, y_hv, features, k=min(5, len(X_hv)))
     
     # Find closest matching composition in database (Euclidean distance)
     closest_alloy = None
@@ -181,12 +216,11 @@ def predict_properties(req: PredictionRequest):
     
     for item in dataset:
         dist_sq = 0.0
-        # Compute distance over the union of keys in target and database entry
         all_keys = set(normalized_comp.keys()).union(item['composition'].keys())
         for el in all_keys:
             dist_sq += (normalized_comp.get(el, 0.0) - item['composition'].get(el, 0.0)) ** 2
             
-        dist = np.sqrt(dist_sq)
+        dist = dist_sq ** 0.5
         if dist < min_dist:
             min_dist = dist
             closest_alloy = item
@@ -198,7 +232,7 @@ def predict_properties(req: PredictionRequest):
             "ys": closest_alloy['ys'],
             "hv": closest_alloy['hv'],
             "ref": closest_alloy['ref'],
-            "distance": round(float(min_dist), 2)
+            "distance": round(min_dist, 2)
         }
         
     return {
@@ -210,9 +244,10 @@ def predict_properties(req: PredictionRequest):
     }
 
 @app.get("/api/health")
+@app.get("/health")
 def health_check():
     return {
         "status": "healthy",
-        "models_loaded": ys_model is not None and hv_model is not None,
+        "models_loaded": len(X_ys) > 0 and len(X_hv) > 0,
         "database_size": len(dataset)
     }
