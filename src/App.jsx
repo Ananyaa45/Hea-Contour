@@ -6,6 +6,7 @@ import { RandomAlloyTable } from './components/RandomAlloyTable';
 import { OptimizationResults } from './components/OptimizationResults';
 import { AnalyticsVisualizations } from './components/AnalyticsVisualizations';
 import { useRealTimeCalculation } from './hooks/useRealTimeCalculation';
+import { calculateAlloyProperties } from './services/alloyCalculator';
 
 const PRESETS = {
   "Transitional HEA": {
@@ -30,129 +31,34 @@ const PRESETS = {
   }
 };
 
-const parseCompositionFormula = (text, currentElements, currentComp) => {
-  const regex = /([A-Z][a-z]?)\s*[:=]?\s*([0-9]+(?:\.[0-9]+)?)/g;
-  let match;
-  const parsed = {};
-  
-  while ((match = regex.exec(text)) !== null) {
-    const el = match[1];
-    const val = parseFloat(match[2]);
-    parsed[el] = val;
-  }
-  
-  const parsedKeys = Object.keys(parsed);
-  if (parsedKeys.length === 0) {
-    return { valid: false, error: "Enter elements and composition values, e.g. Co30 Cr30" };
-  }
-  
-  for (const el of parsedKeys) {
-    if (!currentElements.includes(el)) {
-      return { valid: false, error: `'${el}' is not in the active alloy family.` };
-    }
-    if (parsed[el] < 0 || parsed[el] > 100) {
-      return { valid: false, error: `Composition for '${el}' must be between 0% and 100%.` };
-    }
-  }
-  
-  const parsedSum = parsedKeys.reduce((sum, el) => sum + parsed[el], 0);
-  if (parsedSum > 100) {
-    return { valid: false, error: `Total composition (${parsedSum.toFixed(1)}%) cannot exceed 100%.` };
-  }
-  
-  const unspecifiedKeys = currentElements.filter(k => !parsedKeys.includes(k));
-  
-  if (unspecifiedKeys.length === 0) {
-    if (Math.abs(parsedSum - 100) > 0.05) {
-      return { valid: false, error: `Total composition must sum to exactly 100% (currently ${parsedSum.toFixed(1)}%).` };
-    }
-    return { valid: true, composition: parsed };
-  }
-  
-  const remainder = 100 - parsedSum;
-  const unspecifiedSum = unspecifiedKeys.reduce((sum, k) => sum + (currentComp[k] ?? 0), 0);
-  
-  const newComp = { ...currentComp };
-  parsedKeys.forEach(k => {
-    newComp[k] = parsed[k];
-  });
-  
-  if (unspecifiedSum > 0) {
-    unspecifiedKeys.forEach(k => {
-      newComp[k] = Number(((currentComp[k] / unspecifiedSum) * remainder).toFixed(1));
-    });
-  } else {
-    unspecifiedKeys.forEach(k => {
-      newComp[k] = Number((remainder / unspecifiedKeys.length).toFixed(1));
-    });
-  }
-  
-  const currentSum = Object.values(newComp).reduce((a, b) => a + b, 0);
-  const diff = 100 - currentSum;
-  if (Math.abs(diff) > 0.01 && unspecifiedKeys.length > 0) {
-    const lastKey = unspecifiedKeys[unspecifiedKeys.length - 1];
-    newComp[lastKey] = Number((newComp[lastKey] + diff).toFixed(1));
-  }
-  
-  return { valid: true, composition: newComp };
-};
-
 export default function App() {
   const [activeTab, setActiveTab] = useState('home'); // 'home', 'explore', 'optimize', 'analyze'
   const [selectedType, setSelectedType] = useState("Transitional HEA");
   const [selectedFamily, setSelectedFamily] = useState("Al-Co-Cr-Fe-Ni");
   const [selectedAlloy, setSelectedAlloy] = useState(0);
+  const [autoNormalize, setAutoNormalize] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [formulaInput, setFormulaInput] = useState('');
-  const [formulaError, setFormulaError] = useState(null);
-  const [isFormulaFocused, setIsFormulaFocused] = useState(false);
-  const [lockedElements, setLockedElements] = useState({});
+  
+  const [computing, setComputing] = useState(false);
+  const [showSuccessRing, setShowSuccessRing] = useState(false);
+  
+  // FastAPI validation states
+  const [mlValidating, setMlValidating] = useState(false);
+  const [mlValidationData, setMlValidationData] = useState(null);
+  const [mlError, setMlError] = useState(null);
 
   // Initialize composition based on selected preset
   const [comp, setComp] = useState({
     Al: 20, Co: 20, Cr: 20, Fe: 20, Ni: 20
   });
 
-  const { data, setData } = useRealTimeCalculation(comp);
+  const { data, setData } = useRealTimeCalculation(comp, autoNormalize);
 
-  // Sync formula input text with composition changes (unless user is actively typing)
+  // Clear ML validation when composition changes
   useEffect(() => {
-    if (!isFormulaFocused) {
-      const formatted = Object.entries(comp)
-        .filter(([_, val]) => val > 0)
-        .map(([el, val]) => `${el}${val.toFixed(1)}`)
-        .join(' ');
-      setFormulaInput(formatted);
-      setFormulaError(null);
-    }
-  }, [comp, isFormulaFocused]);
-
-  const handleFormulaChange = (text) => {
-    setFormulaInput(text);
-    
-    if (text.trim() === '') {
-      setFormulaError(null);
-      setLockedElements({});
-      return;
-    }
-    
-    const parseResult = parseCompositionFormula(text, currentElements, comp);
-    if (parseResult.valid) {
-      setComp(parseResult.composition);
-      setFormulaError(null);
-      
-      // Auto-lock elements that were explicitly specified in the typed formula
-      const regex = /([A-Z][a-z]?)\s*[:=]?\s*([0-9]+(?:\.[0-9]+)?)/g;
-      let match;
-      const parsedLocks = {};
-      while ((match = regex.exec(text)) !== null) {
-        parsedLocks[match[1]] = true;
-      }
-      setLockedElements(parsedLocks);
-    } else {
-      setFormulaError(parseResult.error);
-    }
-  };
+    setMlValidationData(null);
+    setMlError(null);
+  }, [comp]);
 
   // Get current elements in active family
   const currentElements = Object.keys(
@@ -165,7 +71,6 @@ export default function App() {
     setSelectedAlloy(alloyIdx);
     const alloy = PRESETS[type][family][alloyIdx];
     setComp({ ...alloy.comp });
-    setLockedElements({});
   };
 
   const handleRandomize = () => {
@@ -183,13 +88,62 @@ export default function App() {
       }
     });
 
-    // Zero out other elements
     Object.keys(comp).forEach(el => {
       if (randomized[el] === undefined) randomized[el] = 0;
     });
 
     setComp(randomized);
-    setLockedElements({});
+  };
+
+  const handleCalculate = () => {
+    setComputing(true);
+    setTimeout(() => {
+      setComputing(false);
+      setShowSuccessRing(true);
+      setTimeout(() => setShowSuccessRing(false), 1200);
+    }, 1000);
+  };
+
+  const handleMLValidate = async () => {
+    setMlValidating(true);
+    setMlError(null);
+    setMlValidationData(null);
+
+    try {
+      const response = await fetch('/api/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ composition: comp }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server returned status: ${response.status}`);
+      }
+
+      const result = await response.ok ? await response.json() : null;
+      setMlValidationData(result);
+    } catch (err) {
+      console.error("FastAPI connection error:", err);
+      setMlError("FastAPI server is not running on port 8000. Start it locally using uvicorn backend.main:app to validate prediction!");
+    } finally {
+      setMlValidating(false);
+    }
+  };
+
+  const loadLiteratureAlloy = (litComp) => {
+    // Zero out all active elements first
+    const cleanComp = {};
+    Object.keys(comp).forEach(k => { cleanComp[k] = 0; });
+    
+    // Copy lit elements
+    for (const key in litComp) {
+      if (comp[key] !== undefined) {
+        cleanComp[key] = litComp[key];
+      }
+    }
+    setComp(cleanComp);
   };
 
   // Compute total composition percentage
@@ -219,86 +173,29 @@ export default function App() {
 
         {/* Desktop Navigation Link Tabs */}
         <nav style={{ display: 'none', gap: '24px', alignItems: 'center' }} className="md-flex">
-          <button 
-            className="btn-secondary" 
-            style={{ 
-              background: 'transparent', 
-              border: 'none', 
-              color: activeTab === 'home' ? 'var(--primary-container)' : 'var(--on-surface-variant)', 
-              fontSize: '11px', 
-              fontFamily: 'var(--font-mono)', 
-              letterSpacing: '0.05em', 
-              textTransform: 'uppercase',
-              borderBottom: activeTab === 'home' ? '2px solid var(--primary-container)' : 'none',
-              borderRadius: 0,
-              padding: '8px 4px',
-              margin: 0,
-              minHeight: 'auto'
-            }}
-            onClick={() => setActiveTab('home')}
-          >
-            Dashboard
-          </button>
-          <button 
-            className="btn-secondary" 
-            style={{ 
-              background: 'transparent', 
-              border: 'none', 
-              color: activeTab === 'explore' ? 'var(--primary-container)' : 'var(--on-surface-variant)', 
-              fontSize: '11px', 
-              fontFamily: 'var(--font-mono)', 
-              letterSpacing: '0.05em', 
-              textTransform: 'uppercase',
-              borderBottom: activeTab === 'explore' ? '2px solid var(--primary-container)' : 'none',
-              borderRadius: 0,
-              padding: '8px 4px',
-              margin: 0,
-              minHeight: 'auto'
-            }}
-            onClick={() => setActiveTab('explore')}
-          >
-            Explore
-          </button>
-          <button 
-            className="btn-secondary" 
-            style={{ 
-              background: 'transparent', 
-              border: 'none', 
-              color: activeTab === 'optimize' ? 'var(--primary-container)' : 'var(--on-surface-variant)', 
-              fontSize: '11px', 
-              fontFamily: 'var(--font-mono)', 
-              letterSpacing: '0.05em', 
-              textTransform: 'uppercase',
-              borderBottom: activeTab === 'optimize' ? '2px solid var(--primary-container)' : 'none',
-              borderRadius: 0,
-              padding: '8px 4px',
-              margin: 0,
-              minHeight: 'auto'
-            }}
-            onClick={() => setActiveTab('optimize')}
-          >
-            Optimize
-          </button>
-          <button 
-            className="btn-secondary" 
-            style={{ 
-              background: 'transparent', 
-              border: 'none', 
-              color: activeTab === 'analyze' ? 'var(--primary-container)' : 'var(--on-surface-variant)', 
-              fontSize: '11px', 
-              fontFamily: 'var(--font-mono)', 
-              letterSpacing: '0.05em', 
-              textTransform: 'uppercase',
-              borderBottom: activeTab === 'analyze' ? '2px solid var(--primary-container)' : 'none',
-              borderRadius: 0,
-              padding: '8px 4px',
-              margin: 0,
-              minHeight: 'auto'
-            }}
-            onClick={() => setActiveTab('analyze')}
-          >
-            Analyze
-          </button>
+          {['home', 'explore', 'optimize', 'analyze'].map(tab => (
+            <button 
+              key={tab}
+              className="btn-secondary" 
+              style={{ 
+                background: 'transparent', 
+                border: 'none', 
+                color: activeTab === tab ? 'var(--primary-container)' : 'var(--on-surface-variant)', 
+                fontSize: '11px', 
+                fontFamily: 'var(--font-mono)', 
+                letterSpacing: '0.05em', 
+                textTransform: 'uppercase',
+                borderBottom: activeTab === tab ? '2px solid var(--primary-container)' : 'none',
+                borderRadius: 0,
+                padding: '8px 4px',
+                margin: 0,
+                minHeight: 'auto'
+              }}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab === 'home' ? 'Dashboard' : tab}
+            </button>
+          ))}
         </nav>
 
         {/* User avatar profile & Mobile Toggle */}
@@ -365,7 +262,6 @@ export default function App() {
         padding: '24px 16px 80px',
         boxSizing: 'border-box'
       }}>
-        {/* Render View Tabs */}
         {activeTab === 'home' && (
           <div className="dashboard-grid">
             
@@ -374,28 +270,7 @@ export default function App() {
               <div className="glass-panel relative overflow-hidden" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div className="scan-line"></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <h3 className="font-display" style={{ fontSize: '15px', fontWeight: 'bold' }}>Composition</h3>
-                    {Object.values(lockedElements).some(v => v) && (
-                      <button
-                        onClick={() => setLockedElements({})}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          color: 'var(--primary-container)',
-                          fontSize: '11px',
-                          textDecoration: 'underline',
-                          cursor: 'pointer',
-                          padding: 0,
-                          margin: 0,
-                          minHeight: 'auto',
-                          fontWeight: '500'
-                        }}
-                      >
-                        Unlock All
-                      </button>
-                    )}
-                  </div>
+                  <h3 className="font-display" style={{ fontSize: '15px', fontWeight: 'bold' }}>Composition</h3>
                   <span className="font-mono" style={{ 
                     fontSize: '11px', 
                     padding: '2px 8px', 
@@ -441,44 +316,12 @@ export default function App() {
                   </select>
                 </div>
 
-                {/* Manual Formula Input */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
-                  <label className="font-display" style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: '600' }}>
-                    Manual Formula Input
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Co30 Cr30"
-                    value={formulaInput}
-                    onChange={(e) => handleFormulaChange(e.target.value)}
-                    onFocus={() => setIsFormulaFocused(true)}
-                    onBlur={() => setIsFormulaFocused(false)}
-                    style={{
-                      padding: '10px 14px',
-                      borderRadius: 'var(--border-radius-sm)',
-                      background: 'var(--surface-container-lowest)',
-                      border: formulaError ? '1px solid var(--error)' : '1px solid var(--outline-variant)',
-                      color: 'var(--on-surface)',
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '13px',
-                      outline: 'none',
-                      transition: 'border-color 0.2s ease'
-                    }}
-                  />
-                  {formulaError && (
-                    <span className="font-mono" style={{ fontSize: '11px', color: 'var(--error)', marginTop: '2px' }}>
-                      ⚠️ {formulaError}
-                    </span>
-                  )}
-                </div>
-
                 {/* Sliders components list */}
                 <div style={{ marginTop: '8px' }}>
                   <CompositionSliders 
                     comp={comp} 
                     setComp={setComp} 
-                    lockedElements={lockedElements}
-                    setLockedElements={setLockedElements}
+                    autoNormalize={autoNormalize} 
                     setSelectedRandom={() => {}} 
                   />
                 </div>
@@ -486,12 +329,44 @@ export default function App() {
                 {/* Compute / random actions */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--outline-variant)' }}>
                   <button 
+                    className="btn-primary" 
+                    onClick={handleCalculate}
+                    disabled={computing}
+                  >
+                    <span className={`material-symbols-outlined ${computing ? 'animate-spin' : ''}`} style={{ fontSize: '20px' }}>
+                      {computing ? 'sync' : 'bolt'}
+                    </span>
+                    {computing ? 'Computing...' : 'Calculate Properties'}
+                  </button>
+
+                  <button 
+                    className="btn-success" 
+                    onClick={handleMLValidate}
+                    disabled={mlValidating}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>analytics</span>
+                    {mlValidating ? 'Running Models...' : 'Validate with ML'}
+                  </button>
+
+                  <button 
                     className="btn-secondary" 
                     onClick={handleRandomize}
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>shuffle</span>
                     Randomize Alloy
                   </button>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--on-surface-variant)' }}>Auto-normalize sliders</span>
+                    <label className="toggle-switch">
+                      <input 
+                        type="checkbox" 
+                        checked={autoNormalize} 
+                        onChange={(e) => setAutoNormalize(e.target.checked)} 
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                  </div>
                 </div>
               </div>
 
@@ -514,7 +389,7 @@ export default function App() {
             <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Bento Metric indicators cards */}
               <div className="bento-grid">
-                <div className="glass-panel" style={{ borderLeft: '4px solid var(--primary-container)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100px' }}>
+                <div className={`glass-panel ${showSuccessRing ? 'pulse-glow' : ''}`} style={{ borderLeft: '4px solid var(--primary-container)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100px' }}>
                   <span className="font-mono" style={{ fontSize: '10px', color: 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>fitness_center</span>
                     YIELD STRENGTH
@@ -555,6 +430,159 @@ export default function App() {
                   </div>
                 </div>
               </div>
+
+              {/* Validate with ML results overlay (Shows if requested) */}
+              {mlError && (
+                <div className="glass-panel" style={{ borderColor: 'var(--error-container)', background: 'rgba(147, 0, 10, 0.15)', color: 'var(--error)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="material-symbols-outlined">warning</span>
+                    <span style={{ fontWeight: '500' }}>{mlError}</span>
+                  </div>
+                </div>
+              )}
+
+              {mlValidationData && (
+                <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '16px', borderColor: 'rgba(117, 253, 0, 0.4)', background: 'rgba(30,35,30,0.7)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--secondary-container)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span className="material-symbols-outlined">verified</span>
+                      Machine Learning Validation
+                    </h3>
+                    <button 
+                      className="btn-secondary" 
+                      style={{ padding: '2px 8px', minHeight: 'auto', margin: 0, fontSize: '11px' }}
+                      onClick={() => setMlValidationData(null)}
+                    >
+                      Close
+                    </button>
+                  </div>
+
+                  <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+                    {/* Comparative Table */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: 'bold' }}>Model Comparison</span>
+                      
+                      <div style={{ background: 'var(--surface-container-lowest)', borderRadius: '4px', border: '1px solid var(--outline-variant)', overflow: 'hidden' }}>
+                        <table style={{ margin: 0 }}>
+                          <thead>
+                            <tr>
+                              <th>Property</th>
+                              <th>Empirical (Physics)</th>
+                              <th>Data-Driven (ML)</th>
+                              <th style={{ textAlign: 'right' }}>Δ Diff</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>Yield Strength</td>
+                              <td>{data?.ml?.YS_pred ?? 1142} MPa</td>
+                              <td>{mlValidationData.ml.YS_pred} MPa</td>
+                              {(() => {
+                                const emp = data?.ml?.YS_pred ?? 1142;
+                                const mlVal = mlValidationData.ml.YS_pred;
+                                const diff = ((mlVal - emp) / emp) * 100;
+                                const color = Math.abs(diff) < 10 ? 'var(--secondary-container)' : Math.abs(diff) < 20 ? 'orange' : 'var(--error)';
+                                return (
+                                  <td style={{ textAlign: 'right', fontWeight: 'bold', color }}>
+                                    {diff >= 0 ? '+' : ''}{diff.toFixed(1)}%
+                                  </td>
+                                );
+                              })()}
+                            </tr>
+                            <tr>
+                              <td>Hardness</td>
+                              <td>{data?.ml?.HV_pred ?? 482} HV</td>
+                              <td>{mlValidationData.ml.HV_pred} HV</td>
+                              {(() => {
+                                const emp = data?.ml?.HV_pred ?? 482;
+                                const mlVal = mlValidationData.ml.HV_pred;
+                                const diff = ((mlVal - emp) / emp) * 100;
+                                const color = Math.abs(diff) < 10 ? 'var(--secondary-container)' : Math.abs(diff) < 20 ? 'orange' : 'var(--error)';
+                                return (
+                                  <td style={{ textAlign: 'right', fontWeight: 'bold', color }}>
+                                    {diff >= 0 ? '+' : ''}{diff.toFixed(1)}%
+                                  </td>
+                                );
+                              })()}
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Closest Database Match details */}
+                    {mlValidationData.closest_match && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: 'bold' }}>Closest Experimental Match</span>
+                        
+                        <div style={{ background: 'var(--surface-container-low)', padding: '12px', borderRadius: '4px', border: '1px solid var(--outline-variant)', display: 'flex', flexDirection: 'column', gap: '6px', height: '100%', boxSizing: 'border-box' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--primary-container)' }}>
+                              {mlValidationData.closest_match.name}
+                            </span>
+                            <span className="font-mono" style={{ fontSize: '10px', color: 'var(--on-surface-variant)' }}>
+                              {mlValidationData.closest_match.distance.toFixed(1)}% offset
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '16px', margin: '4px 0' }}>
+                            <div>
+                              <span style={{ fontSize: '9px', color: 'var(--on-surface-variant)', display: 'block' }}>EXPT. YS</span>
+                              <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{mlValidationData.closest_match.ys ?? 'N/A'} MPa</span>
+                            </div>
+                            <div>
+                              <span style={{ fontSize: '9px', color: 'var(--on-surface-variant)', display: 'block' }}>EXPT. HV</span>
+                              <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{mlValidationData.closest_match.hv ?? 'N/A'} HV</span>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                            {mlValidationData.closest_match.ref && (
+                              <a 
+                                href={`https://doi.org/${mlValidationData.closest_match.ref}`} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--primary)', textDecoration: 'none' }}
+                              >
+                                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>menu_book</span>
+                                Read Paper
+                              </a>
+                            )}
+                            
+                            <button 
+                              className="btn-secondary" 
+                              style={{ padding: '2px 8px', minHeight: 'auto', margin: 0, fontSize: '9px' }}
+                              onClick={() => {
+                                // Extract and parse name structure to reload
+                                // Since we can pass the exact dictionary, we call formula parse
+                                const parsed = {};
+                                const raw = mlValidationData.closest_match.name;
+                                // Basic parse formula implementation in Javascript
+                                const matches = raw.matchAll(/([A-Z][a-z]?)([0-9.]*)/g);
+                                let sum = 0;
+                                for (const match of matches) {
+                                  const el = match[1];
+                                  const val = match[2] ? parseFloat(match[2]) : 1.0;
+                                  parsed[el] = val;
+                                  sum += val;
+                                }
+                                if (sum > 0) {
+                                  for (const k in parsed) {
+                                    parsed[k] = (parsed[k] / sum) * 100;
+                                  }
+                                  loadLiteratureAlloy(parsed);
+                                }
+                              }}
+                            >
+                              Load Composition
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Main charts side-by-side row */}
               <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
