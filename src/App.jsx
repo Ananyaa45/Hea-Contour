@@ -114,8 +114,8 @@ export default function App() {
       const result = await response.ok ? await response.json() : null;
       setMlValidationData(result);
     } catch (err) {
-      console.error("FastAPI connection error:", err);
-      setMlError("FastAPI server is not running on port 8000. Start it locally using uvicorn backend.main:app to validate prediction!");
+      console.error("ML validation error:", err);
+      setMlError(`ML Validation failed: ${err.message}. If running in Vercel, please check your Vercel deployment logs.`);
     } finally {
       setMlValidating(false);
     }

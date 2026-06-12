@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/**/*.py": {
+      "includeFiles": "hea_database.csv"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
