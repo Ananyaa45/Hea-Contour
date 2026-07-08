@@ -494,15 +494,15 @@ async def batch_predict(compositions: List[Dict[str, float]]):
 def health_check():
     return {
         "status": "healthy",
-        "models_loaded":   bool(_model.get("X_ys")),
-        "database_size":   len(_model.get("dataset", [])),
-        "ys_samples":      len(_model.get("y_ys", [])),
-        "hv_samples":      len(_model.get("y_hv", [])),
-        "feature_dims":    len(_model.get("feature_cols", [])) + len(PHYSICS_COLS),
-        "cache_entries":   len(_prediction_cache),
+        "models_loaded":     bool(_model.get("X_ys")),
+        "training_data":     "kaggle_clean.csv",
+        "training_ys":       len(_model.get("y_ys", [])),
+        "training_hv":       len(_model.get("y_hv", [])),
+        "validation_data":   "hea_database.csv (independent — not used for training)",
+        "total_alloys":      len(_model.get("dataset", [])),
+        "feature_dims":      len(_model.get("feature_cols", [])) + len(PHYSICS_COLS),
+        "cache_entries":     len(_prediction_cache),
     }
-
-
 @app.get("/api/elements")
 def list_elements():
     """Return all elements the model knows about."""
