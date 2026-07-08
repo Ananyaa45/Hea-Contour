@@ -88,8 +88,13 @@ R_GAS = 8.3144  # J / (mol·K)
 ELEMENT_PATTERN = re.compile(r"([A-Z][a-z]?)([0-9.]*)")
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
+# Vercel puts included files at /var/task/
+# Locally they are at project root — this handles both
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CSV_PATH = os.path.join(BASE_DIR, "kaggle_clean.csv")
+
+if not os.path.exists(CSV_PATH):
+    CSV_PATH = "/var/task/kaggle_clean.csv"
 
 # ── Global model state ────────────────────────────────────────────────────────
 _model: dict = {}
