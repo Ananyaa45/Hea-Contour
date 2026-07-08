@@ -89,7 +89,7 @@ ELEMENT_PATTERN = re.compile(r"([A-Z][a-z]?)([0-9.]*)")
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CSV_PATH = os.path.join(BASE_DIR, "hea_database.csv")
+CSV_PATH = os.path.join(BASE_DIR, "kaggle_clean.csv")
 
 # ── Global model state ────────────────────────────────────────────────────────
 _model: dict = {}
