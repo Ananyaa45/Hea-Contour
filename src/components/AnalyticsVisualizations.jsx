@@ -57,7 +57,7 @@ export function AnalyticsVisualizations({ activeAlloy, physics, ml, setComp, set
     alloy.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     alloy.id.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   const totalDbPages = Math.ceil(filteredDb.length / dbItemsPerPage);
   const paginatedDb = filteredDb.slice((dbPage - 1) * dbItemsPerPage, dbPage * dbItemsPerPage);
 
@@ -76,10 +76,10 @@ export function AnalyticsVisualizations({ activeAlloy, physics, ml, setComp, set
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      
+
       {/* Bento Grid Visualizations */}
       <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
-        
+
         {/* Radar Properties Profile */}
         <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', minHeight: '340px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -88,7 +88,7 @@ export function AnalyticsVisualizations({ activeAlloy, physics, ml, setComp, set
               <h3 style={{ margin: 0, fontSize: '15px' }}>Property Profile</h3>
             </div>
             <span className="font-mono" style={{ fontSize: '10px', background: 'var(--surface-container-high)', padding: '2px 8px', borderRadius: '4px' }}>
-              RF-MODEL-V2.1
+              KNN  ·  488 CAST ALLOYS
             </span>
           </div>
 
@@ -97,16 +97,16 @@ export function AnalyticsVisualizations({ activeAlloy, physics, ml, setComp, set
             <svg width="200" height="200" viewBox="0 0 200 200">
               {/* Polar concentric grid rings */}
               {[0.25, 0.5, 0.75, 1.0].map((level, i) => (
-                <circle 
-                  key={i} 
-                  cx="100" 
-                  cy="100" 
-                  r={level * 70} 
-                  fill="none" 
-                  stroke="var(--outline-variant)" 
-                  strokeWidth="0.5" 
-                  strokeOpacity="0.3" 
-                  strokeDasharray="2,2" 
+                <circle
+                  key={i}
+                  cx="100"
+                  cy="100"
+                  r={level * 70}
+                  fill="none"
+                  stroke="var(--outline-variant)"
+                  strokeWidth="0.5"
+                  strokeOpacity="0.3"
+                  strokeDasharray="2,2"
                 />
               ))}
 
@@ -116,15 +116,15 @@ export function AnalyticsVisualizations({ activeAlloy, physics, ml, setComp, set
                 const tx = 100 + 70 * Math.cos(angle);
                 const ty = 100 + 70 * Math.sin(angle);
                 return (
-                  <line 
-                    key={i} 
-                    x1="100" 
-                    y1="100" 
-                    x2={tx} 
-                    y2={ty} 
-                    stroke="var(--outline-variant)" 
-                    strokeWidth="0.5" 
-                    strokeOpacity="0.4" 
+                  <line
+                    key={i}
+                    x1="100"
+                    y1="100"
+                    x2={tx}
+                    y2={ty}
+                    stroke="var(--outline-variant)"
+                    strokeWidth="0.5"
+                    strokeOpacity="0.4"
                   />
                 );
               })}
@@ -139,7 +139,7 @@ export function AnalyticsVisualizations({ activeAlloy, physics, ml, setComp, set
                   physics?.omega ? Math.min(1.0, 1 / Math.max(0.5, physics.omega)) : 0.4, // Enthalpy reciprocal representation
                   physics?.VEC ? Math.min(1.0, physics.VEC / 12) : 0.6
                 ];
-                
+
                 const points = values.map((val, idx) => {
                   const angle = (idx * 2 * Math.PI) / 5 - Math.PI / 2;
                   const r = val * 70;
@@ -148,9 +148,9 @@ export function AnalyticsVisualizations({ activeAlloy, physics, ml, setComp, set
                     y: 100 + r * Math.sin(angle)
                   };
                 });
-                
+
                 const pathStr = points.map(p => `${p.x},${p.y}`).join(' ');
-                
+
                 return (
                   <polygon
                     points={pathStr}
@@ -171,13 +171,13 @@ export function AnalyticsVisualizations({ activeAlloy, physics, ml, setComp, set
                 if (Math.cos(angle) > 0.1) anchor = 'start';
                 if (Math.cos(angle) < -0.1) anchor = 'end';
                 return (
-                  <text 
-                    key={idx} 
-                    x={tx} 
-                    y={ty} 
-                    textAnchor={anchor} 
-                    dy="0.3em" 
-                    fill="var(--on-surface-variant)" 
+                  <text
+                    key={idx}
+                    x={tx}
+                    y={ty}
+                    textAnchor={anchor}
+                    dy="0.3em"
+                    fill="var(--on-surface-variant)"
                     style={{ fontFamily: 'var(--font-mono)', fontSize: '7.5px', fontWeight: 'bold' }}
                   >
                     {lbl}
@@ -186,7 +186,7 @@ export function AnalyticsVisualizations({ activeAlloy, physics, ml, setComp, set
               })}
             </svg>
           </div>
-          
+
           <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--outline-variant)', paddingTop: '12px', fontSize: '11px', color: 'var(--on-surface-variant)' }}>
             <span>Model Confidence: <b style={{ color: 'var(--secondary-container)' }}>98.4%</b></span>
             <span>Batch: <b>AL-CO-CR-FE-NI</b></span>
@@ -264,11 +264,11 @@ export function AnalyticsVisualizations({ activeAlloy, physics, ml, setComp, set
             <h3 style={{ margin: 0, fontSize: '15px' }}>Validated HEA Literature Database</h3>
             <p style={{ margin: 0, fontSize: '11px', color: 'var(--on-surface-variant)' }}>Browse measured values from publications.</p>
           </div>
-          
+
           <div style={{ position: 'relative', width: '100%', maxWidth: '280px' }}>
-            <input 
+            <input
               type="text"
-              placeholder="Search by alloy formula..." 
+              placeholder="Search by alloy formula..."
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setDbPage(1); }}
               style={{ padding: '6px 12px', fontSize: '12px' }}
@@ -303,9 +303,9 @@ export function AnalyticsVisualizations({ activeAlloy, physics, ml, setComp, set
                     <td style={{ textAlign: 'right' }}>{alloy.hv}</td>
                     <td style={{ textAlign: 'right' }}>{alloy.emod.toFixed(1)}</td>
                     <td style={{ textAlign: 'center' }}>
-                      <a 
-                        href={`https://doi.org/${alloy.ref}`} 
-                        target="_blank" 
+                      <a
+                        href={`https://doi.org/${alloy.ref}`}
+                        target="_blank"
                         rel="noreferrer"
                         style={{ color: 'var(--on-surface-variant)', textDecoration: 'none' }}
                         className="hover-glow"
@@ -314,7 +314,7 @@ export function AnalyticsVisualizations({ activeAlloy, physics, ml, setComp, set
                       </a>
                     </td>
                     <td>
-                      <button 
+                      <button
                         className="btn-secondary"
                         style={{ padding: '4px 8px', minHeight: 'auto', margin: 0, fontSize: '11px' }}
                         onClick={() => handleRowClick(alloy)}
@@ -337,16 +337,16 @@ export function AnalyticsVisualizations({ activeAlloy, physics, ml, setComp, set
               Showing {Math.min(filteredDb.length, (dbPage - 1) * dbItemsPerPage + 1)} - {Math.min(filteredDb.length, dbPage * dbItemsPerPage)} of {filteredDb.length} literature alloys
             </span>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button 
-                className="btn-secondary" 
+              <button
+                className="btn-secondary"
                 style={{ minHeight: '32px', padding: '0 8px', margin: 0 }}
                 onClick={() => setDbPage(prev => Math.max(1, prev - 1))}
                 disabled={dbPage === 1}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chevron_left</span>
               </button>
-              <button 
-                className="btn-secondary" 
+              <button
+                className="btn-secondary"
                 style={{ minHeight: '32px', padding: '0 8px', margin: 0 }}
                 onClick={() => setDbPage(prev => Math.min(totalDbPages, prev + 1))}
                 disabled={dbPage === totalDbPages}

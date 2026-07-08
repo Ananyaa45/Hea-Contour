@@ -37,7 +37,7 @@ export default function App() {
   const [selectedFamily, setSelectedFamily] = useState("Al-Co-Cr-Fe-Ni");
   const [selectedAlloy, setSelectedAlloy] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
+
   // FastAPI validation states
   const [mlValidating, setMlValidating] = useState(false);
   const [mlValidationData, setMlValidationData] = useState(null);
@@ -72,7 +72,7 @@ export default function App() {
   const handleRandomize = () => {
     const randomized = {};
     let remainder = 100;
-    
+
     currentElements.forEach((el, index) => {
       if (index === currentElements.length - 1) {
         randomized[el] = Number(remainder.toFixed(1));
@@ -125,7 +125,7 @@ export default function App() {
     // Zero out all active elements first
     const cleanComp = {};
     Object.keys(comp).forEach(k => { cleanComp[k] = 0; });
-    
+
     // Copy lit elements
     for (const key in litComp) {
       if (comp[key] !== undefined) {
@@ -163,16 +163,16 @@ export default function App() {
         {/* Desktop Navigation Link Tabs */}
         <nav style={{ display: 'none', gap: '24px', alignItems: 'center' }} className="md-flex">
           {['home', 'explore', 'optimize', 'analyze'].map(tab => (
-            <button 
+            <button
               key={tab}
-              className="btn-secondary" 
-              style={{ 
-                background: 'transparent', 
-                border: 'none', 
-                color: activeTab === tab ? 'var(--primary-container)' : 'var(--on-surface-variant)', 
-                fontSize: '11px', 
-                fontFamily: 'var(--font-mono)', 
-                letterSpacing: '0.05em', 
+              className="btn-secondary"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: activeTab === tab ? 'var(--primary-container)' : 'var(--on-surface-variant)',
+                fontSize: '11px',
+                fontFamily: 'var(--font-mono)',
+                letterSpacing: '0.05em',
                 textTransform: 'uppercase',
                 borderBottom: activeTab === tab ? '2px solid var(--primary-container)' : 'none',
                 borderRadius: 0,
@@ -190,15 +190,15 @@ export default function App() {
         {/* User avatar profile & Mobile Toggle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--surface-container-highest)', border: '1px solid var(--outline-variant)', overflow: 'hidden' }}>
-            <img 
-              alt="Profile" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuABwiWHmLWV_b3LQ2fcTy4YueKmAO22Gi6sVE6MxaQQ1rzlx1ZEaBH_Jtx3ju2lYtC9AZFuCDI2ah-6rOYwvPuuL4FuQdy8pJNpSV75sdsTs_zssI2LsNttCrp2PtO6VuROoGU4mVNnUhseFMqnQ_JGWjTuWIKkguv5XdmAftw1ODMD4eMnzxFfpBGUZBgL-LKWui68k6ltfmkOTPtyqWkSLZZNCsOZh-8rZZv5JJgbe_mYzfXA6dOiJtw4RWKES8D0yHuI_n1lieM" 
+            <img
+              alt="Profile"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuABwiWHmLWV_b3LQ2fcTy4YueKmAO22Gi6sVE6MxaQQ1rzlx1ZEaBH_Jtx3ju2lYtC9AZFuCDI2ah-6rOYwvPuuL4FuQdy8pJNpSV75sdsTs_zssI2LsNttCrp2PtO6VuROoGU4mVNnUhseFMqnQ_JGWjTuWIKkguv5XdmAftw1ODMD4eMnzxFfpBGUZBgL-LKWui68k6ltfmkOTPtyqWkSLZZNCsOZh-8rZZv5JJgbe_mYzfXA6dOiJtw4RWKES8D0yHuI_n1lieM"
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </div>
-          
-          <button 
-            style={{ display: 'block', background: 'transparent', border: 'none', color: 'var(--on-surface)', margin: 0, padding: 0, minHeight: 'auto' }} 
+
+          <button
+            style={{ display: 'block', background: 'transparent', border: 'none', color: 'var(--on-surface)', margin: 0, padding: 0, minHeight: 'auto' }}
             className="md-hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
@@ -223,10 +223,10 @@ export default function App() {
           zIndex: 99
         }} className="md-hidden">
           {['home', 'explore', 'optimize', 'analyze'].map(tab => (
-            <button 
+            <button
               key={tab}
               className="btn-secondary"
-              style={{ 
+              style={{
                 justifyContent: 'flex-start',
                 color: activeTab === tab ? 'var(--primary-container)' : 'var(--on-surface)',
                 borderColor: activeTab === tab ? 'var(--primary-container)' : 'var(--outline-variant)'
@@ -253,16 +253,16 @@ export default function App() {
       }}>
         {activeTab === 'home' && (
           <div className="dashboard-grid">
-            
+
             {/* Left composition panel */}
             <aside style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div className="glass-panel relative overflow-hidden" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div className="scan-line"></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h3 className="font-display" style={{ fontSize: '15px', fontWeight: 'bold' }}>Composition</h3>
-                  <span className="font-mono" style={{ 
-                    fontSize: '11px', 
-                    padding: '2px 8px', 
+                  <span className="font-mono" style={{
+                    fontSize: '11px',
+                    padding: '2px 8px',
                     borderRadius: '4px',
                     background: Math.abs(totalPercentage - 100) > 0.05 ? 'var(--error-container)' : 'var(--on-primary-container)',
                     color: Math.abs(totalPercentage - 100) > 0.05 ? 'var(--on-error-container)' : 'var(--primary-container)'
@@ -307,18 +307,18 @@ export default function App() {
 
                 {/* Sliders components list */}
                 <div style={{ marginTop: '8px' }}>
-                  <CompositionSliders 
-                    comp={comp} 
-                    setComp={setComp} 
-                    autoNormalize={true} 
-                    setSelectedRandom={() => {}} 
+                  <CompositionSliders
+                    comp={comp}
+                    setComp={setComp}
+                    autoNormalize={true}
+                    setSelectedRandom={() => { }}
                   />
                 </div>
 
                 {/* Compute / random actions */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--outline-variant)' }}>
-                  <button 
-                    className="btn-success" 
+                  <button
+                    className="btn-success"
                     onClick={handleMLValidate}
                     disabled={mlValidating}
                   >
@@ -326,8 +326,8 @@ export default function App() {
                     {mlValidating ? 'Running Models...' : 'Validate with ML'}
                   </button>
 
-                  <button 
-                    className="btn-secondary" 
+                  <button
+                    className="btn-secondary"
                     onClick={handleRandomize}
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>shuffle</span>
@@ -343,10 +343,16 @@ export default function App() {
                   <span style={{ fontSize: '10px', color: 'var(--secondary-container)', fontWeight: 'bold' }}>LIVE</span>
                 </div>
                 <div className="font-mono" style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--on-surface)' }}>
-                  RF-REGRESSOR-V2.1
+                  KNN-REGRESSOR  ·  488 ALLOYS
+                </div>
+                <div style={{ fontSize: '10px', color: 'var(--on-surface-variant)', marginTop: '2px' }}>
+                  Train: Kaggle HEA Dataset (CAST)
+                </div>
+                <div style={{ fontSize: '10px', color: 'var(--on-surface-variant)' }}>
+                  Validate: hea_database.csv (independent)
                 </div>
                 <div style={{ width: '100%', height: '3px', background: 'var(--surface-container-highest)', borderRadius: '2px', overflow: 'hidden', marginTop: '4px' }}>
-                  <div style={{ width: '75%', height: '100%', background: 'var(--secondary-container)' }}></div>
+                  <div style={{ width: '88%', height: '100%', background: 'var(--secondary-container)' }}></div>
                 </div>
               </div>
             </aside>
@@ -414,8 +420,8 @@ export default function App() {
                       <span className="material-symbols-outlined">verified</span>
                       Machine Learning Validation
                     </h3>
-                    <button 
-                      className="btn-secondary" 
+                    <button
+                      className="btn-secondary"
                       style={{ padding: '2px 8px', minHeight: 'auto', margin: 0, fontSize: '11px' }}
                       onClick={() => setMlValidationData(null)}
                     >
@@ -427,7 +433,7 @@ export default function App() {
                     {/* Comparative Table */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: 'bold' }}>Model Comparison</span>
-                      
+
                       <div style={{ background: 'var(--surface-container-lowest)', borderRadius: '4px', border: '1px solid var(--outline-variant)', overflow: 'hidden' }}>
                         <table style={{ margin: 0 }}>
                           <thead>
@@ -480,7 +486,7 @@ export default function App() {
                     {mlValidationData.closest_match && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: 'bold' }}>Closest Experimental Match</span>
-                        
+
                         <div style={{ background: 'var(--surface-container-low)', padding: '12px', borderRadius: '4px', border: '1px solid var(--outline-variant)', display: 'flex', flexDirection: 'column', gap: '6px', height: '100%', boxSizing: 'border-box' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--primary-container)' }}>
@@ -504,9 +510,9 @@ export default function App() {
 
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                             {mlValidationData.closest_match.ref && (
-                              <a 
-                                href={`https://doi.org/${mlValidationData.closest_match.ref}`} 
-                                target="_blank" 
+                              <a
+                                href={`https://doi.org/${mlValidationData.closest_match.ref}`}
+                                target="_blank"
                                 rel="noreferrer"
                                 style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--primary)', textDecoration: 'none' }}
                               >
@@ -514,9 +520,9 @@ export default function App() {
                                 Read Paper
                               </a>
                             )}
-                            
-                            <button 
-                              className="btn-secondary" 
+
+                            <button
+                              className="btn-secondary"
                               style={{ padding: '2px 8px', minHeight: 'auto', margin: 0, fontSize: '9px' }}
                               onClick={() => {
                                 // Extract and parse name structure to reload
@@ -558,7 +564,7 @@ export default function App() {
                     <h3 style={{ margin: 0, fontSize: '15px' }}>Physics Descriptors</h3>
                     <span className="material-symbols-outlined" style={{ color: 'var(--on-surface-variant)', cursor: 'pointer' }}>info</span>
                   </div>
-                  
+
                   <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {data?.physics && <RadarPhysicsChart physics={data.physics} />}
                   </div>
@@ -575,9 +581,9 @@ export default function App() {
 
                   <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {data?.physics && (
-                      <TernaryPhaseDiagram 
-                        composition={comp} 
-                        structure={data.physics.structure} 
+                      <TernaryPhaseDiagram
+                        composition={comp}
+                        structure={data.physics.structure}
                       />
                     )}
                   </div>
@@ -588,7 +594,7 @@ export default function App() {
         )}
 
         {activeTab === 'explore' && (
-          <RandomAlloyTable 
+          <RandomAlloyTable
             family={selectedFamily}
             elements={currentElements}
             setComp={setComp}
@@ -597,7 +603,7 @@ export default function App() {
         )}
 
         {activeTab === 'optimize' && (
-          <OptimizationResults 
+          <OptimizationResults
             family={selectedFamily}
             elements={currentElements}
             setComp={setComp}
@@ -606,7 +612,7 @@ export default function App() {
         )}
 
         {activeTab === 'analyze' && (
-          <AnalyticsVisualizations 
+          <AnalyticsVisualizations
             activeAlloy={comp}
             physics={data?.physics}
             ml={data?.ml}
@@ -639,7 +645,7 @@ export default function App() {
         ].map(tab => {
           const isActive = activeTab === tab.id;
           return (
-            <button 
+            <button
               key={tab.id}
               style={{
                 display: 'flex',
