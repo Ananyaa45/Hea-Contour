@@ -91,7 +91,7 @@ ELEMENT_PATTERN = re.compile(r"([A-Z][a-z]?)([0-9.]*)")
 # Vercel puts included files at /var/task/
 # Locally they are at project root — this handles both
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CSV_PATH = os.path.join(BASE_DIR, "kaggle_clean.csv")
+CSV_PATH = os.path.join(BASE_DIR, "hea_database.csv")
 
 if not os.path.exists(CSV_PATH):
     CSV_PATH = "/var/task/kaggle_clean.csv"

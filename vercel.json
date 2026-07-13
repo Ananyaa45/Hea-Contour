@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/**/*.py": {
-      "includeFiles": "kaggle_clean.csv"
+      "includeFiles": "hea_database.csv"
     }
   },
   "rewrites": [
