@@ -20,13 +20,13 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
       // 1. Generate initial random population
       let pop = [];
       const popSize = population;
-      
+
       for (let i = 0; i < popSize * 3; i++) {
         const comp = {};
         const activeCount = Math.floor(Math.random() * 2) + 3; // 3 to 4 elements
         const shuffled = [...elements].sort(() => 0.5 - Math.random());
         const selected = shuffled.slice(0, Math.min(activeCount, elements.length));
-        
+
         let remainder = 100;
         selected.forEach((el, index) => {
           if (index === selected.length - 1) {
@@ -39,7 +39,7 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
             remainder -= val;
           }
         });
-        
+
         elements.forEach(el => {
           if (comp[el] === undefined) comp[el] = 0;
         });
@@ -84,7 +84,7 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
 
       // Clean up Pareto front: sort by YS
       front.sort((a, b) => a.ys - b.ys);
-      
+
       // Limit dominated points size for clean scatter display
       const sampledDominated = dominated
         .sort(() => 0.5 - Math.random())
@@ -92,13 +92,13 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
 
       setParetoFront(front);
       setDominatedPoints(sampledDominated);
-      
+
       // Select the optimal point closest to the middle of the Pareto front
       if (front.length > 0) {
         const midIdx = Math.floor(front.length / 2);
         setSelectedPoint(front[midIdx]);
       }
-      
+
       setRunning(false);
     }, 1500);
   };
@@ -111,7 +111,7 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
   const selectParetoSolution = (alloy) => {
     setSelectedPoint(alloy);
     setComp(alloy.comp);
-    
+
     // Set global app state calculation data
     const result = calculateAlloyProperties(alloy.comp);
     setData(result);
@@ -135,7 +135,7 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>tune</span>
             Optimization Goals
           </h3>
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div style={{ background: 'var(--surface-container-low)', padding: '10px', borderRadius: '4px', border: '1px solid var(--outline-variant)' }}>
               <span style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: 'bold' }}>Target Yield Strength</span>
@@ -144,7 +144,7 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
                 <span className="font-mono" style={{ fontSize: '12px', fontWeight: 'bold' }}>&gt; {targetYS} MPa</span>
               </div>
             </div>
-            
+
             <div style={{ background: 'var(--surface-container-low)', padding: '10px', borderRadius: '4px', border: '1px solid var(--outline-variant)' }}>
               <span style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: 'bold' }}>Target Hardness</span>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
@@ -165,9 +165,9 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
             </div>
           </div>
 
-          <button 
-            className="btn-primary" 
-            style={{ width: '100%', marginTop: '8px' }} 
+          <button
+            className="btn-primary"
+            style={{ width: '100%', marginTop: '8px' }}
             onClick={runEvolution}
             disabled={running}
           >
@@ -182,7 +182,7 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
           <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: 'bold' }}>Model Status</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--secondary-container)', display: 'inline-block' }} className="pulse-glow"></span>
-            <span className="font-mono" style={{ fontSize: '11px' }}>RF-REGRESSOR-V2.1 ACTIVE</span>
+            <span className="font-mono" style={{ fontSize: '11px' }}>KNN-REGRESSOR-V2.1 ACTIVE</span>
           </div>
         </div>
       </aside>
@@ -216,13 +216,13 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
                 const cx = 10 + norm(p.ys, minYS, maxYS) * 80;
                 const cy = 90 - norm(p.hv, minHV, maxHV) * 80;
                 return (
-                  <circle 
-                    key={`dom-${i}`} 
-                    cx={`${cx}%`} 
-                    cy={`${cy}%`} 
-                    r="3" 
-                    fill="var(--outline-variant)" 
-                    fillOpacity="0.5" 
+                  <circle
+                    key={`dom-${i}`}
+                    cx={`${cx}%`}
+                    cy={`${cy}%`}
+                    r="3"
+                    fill="var(--outline-variant)"
+                    fillOpacity="0.5"
                   />
                 );
               })}
@@ -234,13 +234,13 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
                   const y = 90 - norm(p.hv, minHV, maxHV) * 80;
                   return `${x}%,${y}%`;
                 });
-                
+
                 // SVG coordinates representation for path
                 // We'll construct a simple polyline or bezier
                 const pathString = paretoFront.map((p, idx) => {
                   const x = 10 + norm(p.ys, minYS, maxYS) * 80;
                   const y = 90 - norm(p.hv, minHV, maxHV) * 80;
-                  
+
                   // Convert percentage relative to viewBox
                   // Let's assume viewbox size 1000x1000 for path rendering
                   const vx = (x / 100) * 1000;
@@ -318,7 +318,7 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
           <div style={{ padding: '16px', borderBottom: '1px solid var(--outline-variant)' }}>
             <h3 style={{ margin: 0, fontSize: '14px', color: 'var(--on-surface)' }}>Optimized Pareto Front Candidates</h3>
           </div>
-          
+
           <div style={{ overflowX: 'auto' }}>
             <table>
               <thead>
@@ -351,10 +351,10 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
                       .map(([k, v]) => `${k}${v.toFixed(0)}`)
                       .join(' ');
                     const isSelected = selectedPoint && JSON.stringify(selectedPoint.comp) === JSON.stringify(alloy.comp);
-                    
+
                     return (
-                      <tr 
-                        key={i} 
+                      <tr
+                        key={i}
                         style={{ background: isSelected ? 'rgba(0, 229, 255, 0.05)' : 'transparent' }}
                       >
                         <td>#{i + 1}</td>
@@ -368,8 +368,8 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
                           </span>
                         </td>
                         <td>
-                          <button 
-                            className="btn-secondary" 
+                          <button
+                            className="btn-secondary"
                             style={{ padding: '4px 8px', minHeight: 'auto', margin: 0 }}
                             onClick={() => selectParetoSolution(alloy)}
                           >
