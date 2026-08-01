@@ -29,9 +29,9 @@ export function TernaryPhaseDiagram({ composition, structure }) {
   const valA = composition[elA] ?? 0;
   const valB = composition[elB] ?? 0;
   const valC = composition[elC] ?? 0;
-  
+
   const sum = valA + valB + valC;
-  
+
   // Normalize fractions (must sum to 1.0)
   let cA = 0.33, cB = 0.33, cC = 0.34;
   if (sum > 0) {
@@ -43,10 +43,10 @@ export function TernaryPhaseDiagram({ composition, structure }) {
   // Equilateral triangle layout properties
   const width = 280;
   const height = 230;
-  
+
   // Vertices coordinates
   const vA = { x: 140, y: 30 };   // Top corner (Element A)
-  const vB = { x: 40,  y: 190 };  // Bottom-Left corner (Element B)
+  const vB = { x: 40, y: 190 };  // Bottom-Left corner (Element B)
   const vC = { x: 240, y: 190 };  // Bottom-Right corner (Element C)
 
   // Map barycentric coordinates to Cartesian coordinates
@@ -155,7 +155,7 @@ export function TernaryPhaseDiagram({ composition, structure }) {
           100%
         </text>
       </svg>
-      
+
       {/* Legend Overlay */}
       <div style={{ display: 'flex', gap: '12px', fontSize: '10px', fontFamily: 'var(--font-mono)', marginTop: '-8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

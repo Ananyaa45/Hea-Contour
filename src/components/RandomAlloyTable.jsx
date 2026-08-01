@@ -8,7 +8,7 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
   const [candidates, setCandidates] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
-  
+
   const itemsPerPage = 8;
 
   // Run initial generation on load or element change
@@ -18,25 +18,25 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
 
   const generateSamplings = () => {
     setLoading(true);
-    
+
     // Simulate generation delay
     setTimeout(() => {
       const generated = [];
       const numSamples = sampleSize;
-      
+
       let attempts = 0;
       while (generated.length < numSamples && attempts < numSamples * 8) {
         attempts++;
-        
+
         // Pick 3 to 5 random elements from the selected family
         const activeCount = Math.floor(Math.random() * 2) + 4; // 4 or 5 elements
         const shuffled = [...elements].sort(() => 0.5 - Math.random());
         const selected = shuffled.slice(0, Math.min(activeCount, elements.length));
-        
+
         // Generate random proportions summing to 100%
         let remainder = 100;
         const comp = {};
-        
+
         selected.forEach((el, index) => {
           if (index === selected.length - 1) {
             comp[el] = Number(remainder.toFixed(1));
@@ -49,7 +49,7 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
             remainder -= val;
           }
         });
-        
+
         // Fill other elements of the family with 0
         elements.forEach(el => {
           if (comp[el] === undefined) comp[el] = 0;
@@ -60,17 +60,17 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
         if (!props) continue;
 
         // Quality score: combinations of high YS, reasonable density and solid solution phase
-        const ys = props.ml.YS_pred;
-        const hv = props.ml.HV_pred;
+        const ys = props.estimated.YS_pred;
+        const hv = props.estimated.HV_pred;
         const rho = props.physics.density_calc;
         const omega = props.physics.omega;
-        
+
         // Normalize components
         const normYS = Math.min(1, ys / 1400);
         const normHV = Math.min(1, hv / 600);
         const normRho = Math.max(0, Math.min(1, (12 - rho) / 10)); // lighter is better
         const normStability = (props.physics.structure !== 'Intermetallic' && omega >= 1.0) ? 1.0 : 0.3;
-        
+
         const score = Number((normYS * 0.4 + normHV * 0.3 + normRho * 0.15 + normStability * 0.15).toFixed(2));
 
         // Diversity filter check
@@ -94,7 +94,7 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
         generated.push({
           comp,
           physics: props.physics,
-          ml: props.ml,
+          estimated: props.estimated,
           score
         });
       }
@@ -111,7 +111,7 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
   const selectRow = (alloy) => {
     setSelectedCandidate(alloy);
     setComp(alloy.comp);
-    
+
     // Recalculate properties for global app state
     const result = calculateAlloyProperties(alloy.comp);
     setData(result);
@@ -127,8 +127,8 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
   const successRate = candidates.length > 0 ? ((stableCount / candidates.length) * 100).toFixed(1) : 0;
 
   // Chart boundaries for Pareto Front plotting
-  const allYs = candidates.map(c => c.ml.YS_pred);
-  const allHv = candidates.map(c => c.ml.HV_pred);
+  const allYs = candidates.map(c => c.estimated.YS_pred);
+  const allHv = candidates.map(c => c.estimated.HV_pred);
   const minYs = allYs.length > 0 ? Math.min(...allYs) * 0.9 : 200;
   const maxYs = allYs.length > 0 ? Math.max(...allYs) * 1.1 : 1500;
   const minHv = allHv.length > 0 ? Math.min(...allHv) * 0.9 : 100;
@@ -144,11 +144,11 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>tune</span>
             Explore Parameters
           </h3>
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label className="font-display" style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: '600' }}>Sample Size</label>
-            <select 
-              value={sampleSize} 
+            <select
+              value={sampleSize}
               onChange={(e) => setSampleSize(Number(e.target.value))}
             >
               <option value={30}>30 Candidates</option>
@@ -164,10 +164,10 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
               <p style={{ margin: 0, fontSize: '10px', color: 'var(--on-surface-variant)', fontStyle: 'italic' }}>Euclidean distance check</p>
             </div>
             <label className="toggle-switch">
-              <input 
-                type="checkbox" 
-                checked={diversityFilter} 
-                onChange={(e) => setDiversityFilter(e.target.checked)} 
+              <input
+                type="checkbox"
+                checked={diversityFilter}
+                onChange={(e) => setDiversityFilter(e.target.checked)}
               />
               <span className="toggle-slider"></span>
             </label>
@@ -184,9 +184,9 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
             </div>
           </div>
 
-          <button 
-            className="btn-primary" 
-            style={{ width: '100%', marginTop: '12px' }} 
+          <button
+            className="btn-primary"
+            style={{ width: '100%', marginTop: '12px' }}
             onClick={generateSamplings}
             disabled={loading}
           >
@@ -218,7 +218,7 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
               {candidates.length} samples
             </span>
           </div>
-          
+
           <div style={{ overflowX: 'auto', flex: 1 }}>
             <table>
               <thead>
@@ -251,12 +251,12 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
                       .filter(([_, v]) => v > 0)
                       .map(([k, v]) => `${k}${v.toFixed(0)}`)
                       .join(' ');
-                    
+
                     return (
-                      <tr 
-                        key={idx} 
+                      <tr
+                        key={idx}
                         onClick={() => selectRow(alloy)}
-                        style={{ 
+                        style={{
                           cursor: 'pointer',
                           background: isSelected ? 'rgba(0, 229, 255, 0.08)' : 'transparent',
                           boxShadow: isSelected ? 'inset 4px 0 0 var(--primary-container)' : 'none'
@@ -264,13 +264,13 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
                       >
                         <td style={{ color: isSelected ? 'var(--primary-container)' : 'inherit' }}>#{globalRank}</td>
                         <td style={{ fontWeight: 'bold' }}>{compStr}</td>
-                        <td style={{ textAlign: 'right' }}>{alloy.ml.YS_pred}</td>
-                        <td style={{ textAlign: 'right' }}>{alloy.ml.HV_pred}</td>
+                        <td style={{ textAlign: 'right' }}>{alloy.estimated.YS_pred}</td>
+                        <td style={{ textAlign: 'right' }}>{alloy.estimated.HV_pred}</td>
                         <td>
-                          <span style={{ 
-                            padding: '2px 6px', 
-                            borderRadius: '3px', 
-                            fontSize: '10px', 
+                          <span style={{
+                            padding: '2px 6px',
+                            borderRadius: '3px',
+                            fontSize: '10px',
                             fontWeight: 'bold',
                             border: '1px solid',
                             background: alloy.physics.structure.includes('FCC') && alloy.physics.structure.includes('BCC') ? 'rgba(0,229,255,0.08)' : alloy.physics.structure === 'FCC' ? 'rgba(117,253,0,0.08)' : 'rgba(215,240,254,0.08)',
@@ -298,16 +298,16 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
                 Page {currentPage} of {totalPages}
               </span>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button 
-                  className="btn-secondary" 
+                <button
+                  className="btn-secondary"
                   style={{ minHeight: '32px', padding: '0 8px', margin: 0 }}
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chevron_left</span>
                 </button>
-                <button 
-                  className="btn-secondary" 
+                <button
+                  className="btn-secondary"
                   style={{ minHeight: '32px', padding: '0 8px', margin: 0 }}
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
@@ -324,7 +324,7 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
             <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <h4 style={{ margin: 0, fontSize: '14px', color: 'var(--primary-container)' }}>Selected Candidate Properties</h4>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
                 <div style={{ background: 'var(--surface-container-low)', padding: '10px', borderRadius: '4px', border: '1px solid var(--outline-variant)' }}>
                   <span style={{ fontSize: '10px', color: 'var(--on-surface-variant)', textTransform: 'uppercase' }}>VEC</span>
@@ -350,39 +350,39 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
             {/* Custom Pareto Front Scatter Plot using SVG */}
             <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <h4 style={{ margin: 0, fontSize: '14px', color: 'var(--on-surface)' }}>Property Space Distribution (YS vs HV)</h4>
-              
+
               <div style={{ height: '220px', width: '100%', position: 'relative', background: 'var(--surface-container-lowest)', borderRadius: '6px', border: '1px solid var(--outline-variant)', overflow: 'hidden' }}>
                 <svg width="100%" height="100%">
                   {/* Grid Lines */}
                   {[0.2, 0.4, 0.6, 0.8].map((f, i) => (
                     <React.Fragment key={i}>
                       {/* Vertical grid lines */}
-                      <line 
-                        x1={`${f * 100}%`} 
-                        y1="5%" 
-                        x2={`${f * 100}%`} 
-                        y2="90%" 
-                        stroke="var(--outline-variant)" 
-                        strokeWidth="0.5" 
-                        strokeOpacity="0.25" 
+                      <line
+                        x1={`${f * 100}%`}
+                        y1="5%"
+                        x2={`${f * 100}%`}
+                        y2="90%"
+                        stroke="var(--outline-variant)"
+                        strokeWidth="0.5"
+                        strokeOpacity="0.25"
                       />
                       {/* Horizontal grid lines */}
-                      <line 
-                        x1="5%" 
-                        y1={`${f * 100}%`} 
-                        x2={`${95}%`} 
-                        y2={`${f * 100}%`} 
-                        stroke="var(--outline-variant)" 
-                        strokeWidth="0.5" 
-                        strokeOpacity="0.25" 
+                      <line
+                        x1="5%"
+                        y1={`${f * 100}%`}
+                        x2={`${95}%`}
+                        y2={`${f * 100}%`}
+                        stroke="var(--outline-variant)"
+                        strokeWidth="0.5"
+                        strokeOpacity="0.25"
                       />
                     </React.Fragment>
                   ))}
 
                   {/* Candidate scatter points */}
                   {!loading && candidates.map((c, i) => {
-                    const xPct = 10 + norm(c.ml.YS_pred, minYs, maxYs) * 80; // scale 10% to 90%
-                    const yPct = 90 - norm(c.ml.HV_pred, minHv, maxHv) * 80; // invert y scale (90% to 10%)
+                    const xPct = 10 + norm(c.estimated.YS_pred, minYs, maxYs) * 80; // scale 10% to 90%
+                    const yPct = 90 - norm(c.estimated.HV_pred, minHv, maxHv) * 80; // invert y scale (90% to 10%)
                     const isSelected = selectedCandidate && JSON.stringify(selectedCandidate.comp) === JSON.stringify(c.comp);
                     const isTopScore = c.score >= 0.78;
 
@@ -398,12 +398,12 @@ export function RandomAlloyTable({ family, elements, setComp, setData }) {
                         style={{ cursor: 'pointer', transition: 'all 0.2s' }}
                         onClick={() => selectRow(c)}
                       >
-                        <title>{`YS: ${c.ml.YS_pred} MPa, HV: ${c.ml.HV_pred} HV`}</title>
+                        <title>{`YS: ${c.estimated.YS_pred} MPa, HV: ${c.estimated.HV_pred} HV`}</title>
                       </circle>
                     );
                   })}
                 </svg>
-                
+
                 {/* Axes label labels */}
                 <div style={{ position: 'absolute', bottom: '4px', left: '50%', transform: 'translateX(-50%)', fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'var(--on-surface-variant)' }}>
                   YIELD STRENGTH (MPa) →

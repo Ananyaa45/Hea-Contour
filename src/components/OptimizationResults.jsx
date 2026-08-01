@@ -48,8 +48,8 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
         if (res) {
           pop.push({
             comp,
-            ys: res.ml.YS_pred,
-            hv: res.ml.HV_pred,
+            ys: res.estimated.YS_pred,
+            hv: res.estimated.HV_pred,
             omega: res.physics.omega,
             structure: res.physics.structure,
             phase: res.physics.phase,
@@ -160,7 +160,7 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
               <span className="font-mono">{population}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-              <span>Generations</span>
+              <span>Candidates Sampled</span>
               <span className="font-mono">{generations}</span>
             </div>
           </div>
@@ -174,7 +174,7 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
             <span className={`material-symbols-outlined ${running ? 'animate-spin' : ''}`} style={{ fontSize: '20px' }}>
               {running ? 'sync' : 'play_arrow'}
             </span>
-            {running ? 'Evolving Generations...' : 'Run NSGA-II Solver'}
+            {running ? 'Sampling & Filtering...' : 'Run Pareto Sampler'}
           </button>
         </div>
 

@@ -368,7 +368,7 @@ export default function App() {
                   </span>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
                     <span className="font-display" style={{ fontSize: '36px', fontWeight: 'bold', color: 'var(--primary-container)', lineHeight: 1 }}>
-                      {data?.ml?.YS_pred ?? 1142}
+                      {data?.estimated?.YS_pred ?? 1142}
                     </span>
                     <span style={{ fontSize: '11px', color: 'var(--on-surface-variant)' }}>MPa</span>
                   </div>
@@ -381,7 +381,7 @@ export default function App() {
                   </span>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
                     <span className="font-display" style={{ fontSize: '36px', fontWeight: 'bold', color: 'var(--secondary-container)', lineHeight: 1 }}>
-                      {data?.ml?.HV_pred ?? 482}
+                      {data?.estimated?.HV_pred ?? 482}
                     </span>
                     <span style={{ fontSize: '11px', color: 'var(--on-surface-variant)' }}>HV</span>
                   </div>
@@ -447,10 +447,10 @@ export default function App() {
                           <tbody>
                             <tr>
                               <td>Yield Strength</td>
-                              <td>{data?.ml?.YS_pred ?? 1142} MPa</td>
+                              <td>{data?.estimated?.YS_pred ?? 1142} MPa</td>
                               <td>{mlValidationData.ml.YS_pred} MPa</td>
                               {(() => {
-                                const emp = data?.ml?.YS_pred ?? 1142;
+                                const emp = data?.estimated?.YS_pred ?? 1142;
                                 const mlVal = mlValidationData.ml.YS_pred;
                                 const diff = ((mlVal - emp) / emp) * 100;
                                 const color = Math.abs(diff) < 10 ? 'var(--secondary-container)' : Math.abs(diff) < 20 ? 'orange' : 'var(--error)';
@@ -463,10 +463,10 @@ export default function App() {
                             </tr>
                             <tr>
                               <td>Hardness</td>
-                              <td>{data?.ml?.HV_pred ?? 482} HV</td>
+                              <td>{data?.estimated?.HV_pred ?? 482} HV</td>
                               <td>{mlValidationData.ml.HV_pred} HV</td>
                               {(() => {
-                                const emp = data?.ml?.HV_pred ?? 482;
+                                const emp = data?.estimated?.HV_pred ?? 482;
                                 const mlVal = mlValidationData.ml.HV_pred;
                                 const diff = ((mlVal - emp) / emp) * 100;
                                 const color = Math.abs(diff) < 10 ? 'var(--secondary-container)' : Math.abs(diff) < 20 ? 'orange' : 'var(--error)';
@@ -615,7 +615,7 @@ export default function App() {
           <AnalyticsVisualizations
             activeAlloy={comp}
             physics={data?.physics}
-            ml={data?.ml}
+            estimated={data?.estimated}
             setComp={setComp}
             setData={setData}
           />

@@ -36,7 +36,7 @@ export function RadarPhysicsChart({ physics }) {
 
   // Generate vertices for concentric grid lines (at 25%, 50%, 75%, 100%)
   const gridLevels = [0.25, 0.5, 0.75, 1.0];
-  
+
   const getCoordinates = (index, value) => {
     const angle = (index * 2 * Math.PI) / 6 - Math.PI / 2;
     const r = value * maxRadius;
@@ -69,7 +69,7 @@ export function RadarPhysicsChart({ physics }) {
             const p = getCoordinates(i, level);
             return `${p.x},${p.y}`;
           }).join(' ');
-          
+
           return (
             <polygon
               key={lvlIdx}
@@ -128,11 +128,11 @@ export function RadarPhysicsChart({ physics }) {
         {axes.map((axis, i) => {
           const offset = 18;
           const labelPos = getCoordinates(i, 1.15);
-          
+
           // Micro-adjustment for text alignment
           let textAnchor = 'middle';
           let dy = '0.35em';
-          
+
           if (Math.abs(labelPos.x - center) < 5) {
             textAnchor = 'middle';
           } else if (labelPos.x > center) {

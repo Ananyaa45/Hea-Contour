@@ -39,7 +39,7 @@ export function CompositionSliders({ comp, setComp, autoNormalize, setSelectedRa
 
   const handleUpdate = (el, val) => {
     setSelectedRandom(null);
-    
+
     // Automatically lock this element because it is being manually edited
     setLocked(prev => ({
       ...prev,
@@ -50,20 +50,20 @@ export function CompositionSliders({ comp, setComp, autoNormalize, setSelectedRa
       // Find sum of locked elements (excluding the one being changed)
       const lockedKeys = Object.keys(prev).filter(k => (locked[k] || k === el) && k !== el);
       const sumLocked = lockedKeys.reduce((sum, k) => sum + (prev[k] ?? 0), 0);
-      
+
       // Target value is clamped to remaining allowed percentage
       const maxVal = 100 - sumLocked;
       const clampedVal = Math.max(0, Math.min(val, maxVal));
-      
+
       const updated = { ...prev };
       updated[el] = clampedVal;
-      
+
       if (autoNormalize) {
         // Find unlocked elements (excluding the one being changed)
         const unlockedKeys = Object.keys(prev).filter(k => !locked[k] && k !== el);
         const sumUnlocked = unlockedKeys.reduce((sum, k) => sum + (prev[k] ?? 0), 0);
         const remainder = 100 - clampedVal - sumLocked;
-        
+
         if (sumUnlocked > 0 && remainder >= 0) {
           unlockedKeys.forEach(k => {
             updated[k] = Number(((prev[k] / sumUnlocked) * remainder).toFixed(1));
@@ -75,7 +75,7 @@ export function CompositionSliders({ comp, setComp, autoNormalize, setSelectedRa
           });
         }
       }
-      
+
       return updated;
     });
   };
@@ -107,7 +107,7 @@ export function CompositionSliders({ comp, setComp, autoNormalize, setSelectedRa
         const val = comp[el] ?? 0;
         const isLocked = !!locked[el];
         const displayVal = inputValues[el] !== undefined ? inputValues[el] : val.toFixed(1);
-        
+
         return (
           <div key={el} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -129,9 +129,9 @@ export function CompositionSliders({ comp, setComp, autoNormalize, setSelectedRa
                   }}
                   title={isLocked ? 'Unlock Element' : 'Lock Element'}
                 >
-                  <span 
-                    className="material-symbols-outlined" 
-                    style={{ 
+                  <span
+                    className="material-symbols-outlined"
+                    style={{
                       fontSize: '16px',
                       filter: isLocked ? 'drop-shadow(0 0 3px var(--primary-container))' : 'none'
                     }}
@@ -139,12 +139,12 @@ export function CompositionSliders({ comp, setComp, autoNormalize, setSelectedRa
                     {isLocked ? 'lock' : 'lock_open'}
                   </span>
                 </button>
-                
+
                 <span className="font-mono" style={{ fontSize: '13px', fontWeight: '600', color: 'var(--on-surface-variant)' }}>
                   {el}
                 </span>
               </div>
-              
+
               {/* Manual Entry Number Input Box */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
                 <input
@@ -169,7 +169,7 @@ export function CompositionSliders({ comp, setComp, autoNormalize, setSelectedRa
                 <span style={{ fontSize: '11px', color: 'var(--on-surface-variant)', fontFamily: 'var(--font-mono)' }}>%</span>
               </div>
             </div>
-            
+
             <input
               type="range"
               min="0"

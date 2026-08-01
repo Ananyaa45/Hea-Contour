@@ -15,7 +15,7 @@ const VALIDATED_DATABASE = [
   { id: 'HEA-10-V', name: 'NbTiTaW', ys: 1320, hv: 590, emod: 210.0, ref: '10.1016/j.msea.2016.12.012' }
 ];
 
-export function AnalyticsVisualizations({ activeAlloy, physics, ml, setComp, setData }) {
+export function AnalyticsVisualizations({ activeAlloy, physics, estimated, setComp, setData }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [dbPage, setDbPage] = useState(1);
   const dbItemsPerPage = 5;
@@ -62,8 +62,8 @@ export function AnalyticsVisualizations({ activeAlloy, physics, ml, setComp, set
   const paginatedDb = filteredDb.slice((dbPage - 1) * dbItemsPerPage, dbPage * dbItemsPerPage);
 
   // Active properties values
-  const currentYS = ml?.YS_pred ?? 1142;
-  const currentHV = ml?.HV_pred ?? 482;
+  const currentYS = estimated?.YS_pred ?? 1142;
+  const currentHV = estimated?.HV_pred ?? 482;
   const currentOmega = physics?.omega ?? 1.82;
   const currentStructure = physics?.structure ?? 'FCC + BCC';
 
@@ -188,7 +188,7 @@ export function AnalyticsVisualizations({ activeAlloy, physics, ml, setComp, set
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--outline-variant)', paddingTop: '12px', fontSize: '11px', color: 'var(--on-surface-variant)' }}>
-            <span>Model Confidence: <b style={{ color: 'var(--secondary-container)' }}>98.4%</b></span>
+
             <span>Batch: <b>AL-CO-CR-FE-NI</b></span>
           </div>
         </div>

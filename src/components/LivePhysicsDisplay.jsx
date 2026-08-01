@@ -40,8 +40,8 @@ export function LivePhysicsDisplay({ data }) {
             <p>Δχ: {data.physics?.dChi ?? "-"}</p>
             <p>Ω: {data.physics?.omega ?? "-"}</p>
 
-            <p><b>YS:</b> {data?.ml?.YS_pred != null ? data.ml.YS_pred.toFixed(2) : "-"}</p>
-            <p><b>HV:</b> {data?.ml?.HV_pred != null ? data.ml.HV_pred.toFixed(2) : "-"}</p>
+            <p><b>YS:</b> {data?.estimated?.YS_pred != null ? data.estimated.YS_pred.toFixed(2) : "-"}</p>
+            <p><b>HV:</b> {data?.estimated?.HV_pred != null ? data.estimated.HV_pred.toFixed(2) : "-"}</p>
 
             <p><b>Structure:</b> {data.physics?.structure ?? "-"}</p>
             <p>Phase: {data.physics?.phase ?? "-"}</p>

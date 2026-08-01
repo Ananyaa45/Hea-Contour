@@ -21,7 +21,7 @@ app = FastAPI(title="HEA Contour ML Backend", version="2.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -90,8 +90,19 @@ ELEMENT_PATTERN = re.compile(r"([A-Z][a-z]?)([0-9.]*)")
 # ── Paths ─────────────────────────────────────────────────────────────────────
 # Vercel puts included files at /var/task/
 # Locally they are at project root — this handles both
+def resolve_csv_path():
+    candidates = [
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "hea_database.csv"),
+        os.path.join("/var/task", "hea_database.csv"),
+        os.path.join(os.getcwd(), "hea_database.csv"),
+    ]
+    for path in candidates:
+        if os.path.exists(path):
+            return path
+    # Return the first candidate anyway so the error message downstream is meaningful
+    return candidates[0]
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CSV_PATH = os.path.join(BASE_DIR, "hea_database.csv")
+CSV_PATH = resolve_csv_path()
 
 if not os.path.exists(CSV_PATH):
     CSV_PATH = "/var/task/kaggle_clean.csv"
