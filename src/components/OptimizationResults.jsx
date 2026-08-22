@@ -11,7 +11,7 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
   const [dominatedPoints, setDominatedPoints] = useState([]);
   const [selectedPoint, setSelectedPoint] = useState(null);
 
-  // Run a quick simulation of NSGA-II client-side
+
   const runEvolution = () => {
     setRunning(true);
     setSelectedPoint(null);

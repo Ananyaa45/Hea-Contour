@@ -28,6 +28,22 @@ const PRESETS = {
     "Al-Li-Mg-Sc-Ti": [
       { name: "AlLiMgScTi (Equiatomic)", comp: { Al: 20, Li: 20, Mg: 20, Sc: 20, Ti: 20 } }
     ]
+  },
+  "Validation Set (Paper)": {
+    "Clean 12-Alloy Set": [
+      { name: "#1 Al0.053CuMnNi", comp: { Al: 1.7, Cu: 32.8, Mn: 32.8, Ni: 32.8 } },
+      { name: "#2 Al0.333CoCuFeNi", comp: { Al: 14.3, Co: 14.3, Cu: 14.3, Fe: 14.3, Ni: 42.9 } },
+      { name: "#3 NbTaTi", comp: { Nb: 33.3, Ta: 33.3, Ti: 33.3 } },
+      { name: "#4 MoNbTaTi0.5W", comp: { Mo: 22.2, Nb: 22.2, Ta: 22.2, Ti: 11.1, W: 22.2 } },
+      { name: "#5 CrFeNiTi0.4", comp: { Cr: 29.4, Fe: 29.4, Ni: 29.4, Ti: 11.8 } },
+      { name: "#6 CoCrFeNiW0.2", comp: { Co: 23.8, Cr: 23.8, Fe: 23.8, Ni: 23.8, W: 4.8 } },
+      { name: "#7 CoCrFeNiW0.5", comp: { Co: 22.2, Cr: 22.2, Fe: 22.2, Ni: 22.2, W: 11.1 } },
+      { name: "#8 Al0.5CoCuFeNi", comp: { Al: 16.7, Co: 16.7, Cu: 16.7, Fe: 16.7, Ni: 33.3 } },
+      { name: "#9 Al0.5CoCrFeMnNi", comp: { Al: 9.1, Co: 18.2, Cr: 18.2, Fe: 18.2, Mn: 18.2, Ni: 18.2 } },
+      { name: "#10 AlCoCrNi", comp: { Al: 25.0, Co: 25.0, Cr: 25.0, Ni: 25.0 } },
+      { name: "#11 Al0.6CrFeMnNi", comp: { Al: 13.0, Cr: 21.7, Fe: 21.7, Mn: 21.7, Ni: 21.7 } },
+      { name: "#12 AlCrFeMo0.5NiTi0.25", comp: { Al: 21.1, Cr: 21.1, Fe: 21.1, Mo: 10.5, Ni: 21.1, Ti: 5.3 } }
+    ]
   }
 };
 
