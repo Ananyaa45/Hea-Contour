@@ -337,7 +337,7 @@ export function OptimizationResults({ family, elements, setComp, setData }) {
                   <tr>
                     <td colSpan="7" style={{ textAlign: 'center', padding: '30px', color: 'var(--on-surface-variant)' }}>
                       <span className="material-symbols-outlined animate-spin" style={{ fontSize: '24px', verticalAlign: 'middle', marginRight: '8px' }}>sync</span>
-                      Running genetic sorting algorithm...
+                      Sampling and filtering candidates...
                     </td>
                   </tr>
                 ) : paretoFront.length === 0 ? (
